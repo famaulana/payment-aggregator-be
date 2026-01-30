@@ -1,0 +1,89 @@
+# Laravel core
+/vendor/
+/node_modules/
+/public/build/
+/public/hot/
+/public/storage/
+/storage/logs/
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/views/
+/storage/framework/testing/
+/storage/*.key
+/storage/pail/
+/storage/oauth/*.key
+/storage/oauth/oauth-*.key
+/bootstrap/cache/*.php
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+/auth.json
+
+# Logs & cache
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.phpunit.result.cache
+.phpactor.json
+
+# Testing
+/.phpunit.cache
+/.phpunit.cache/*
+/coverage
+/.coverage
+
+# IDE & editors
+/.idea/
+/.vscode/
+/.zed/
+/.fleet/
+/.nova/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Icon?
+desktop.ini
+
+# Laravel Homestead
+Homestead.json
+Homestead.yaml
+
+# Laravel Sail / Docker
+/docker-compose.override.yml
+/.docker
+/.sail
+
+# Frontend tools
+/.vite
+/.turbo
+/.parcel-cache
+/.eslintcache
+
+# CI / build artifacts
+/.scannerwork
+/.cache
+/tmp
+/temp
+
+# PHP tools
+/.php-cs-fixer.cache
+/.phpstan.cache
+/.psalm.cache
+.php_cs.cache
+
+# Misc
+*.swp
+*.swo
+*.bak
+*.old
+*.tmp
