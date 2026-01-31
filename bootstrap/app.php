@@ -15,5 +15,24 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\SetLocaleFromRequest::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            $handler = new \App\Exceptions\Handler(app());
+
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return $handler->render($request, $e);
+            }
+
+            return null;
+        });
+
+        $exceptions->reportable(function (\Throwable $e) {
+            if (config('app.env') !== 'testing') {
+                \Log::error($e->getMessage(), [
+                    'exception' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+        });
     })->create();
