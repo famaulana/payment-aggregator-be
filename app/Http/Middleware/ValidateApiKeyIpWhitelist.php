@@ -10,8 +10,10 @@ class ValidateApiKeyIpWhitelist
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->has('api_key')) {
-            $apiKey = \App\Models\ApiKey::where('api_key', $request->api_key)
+        $apiKeyValue = $request->input('api_key') ?: $request->header('X-API-Key');
+
+        if ($apiKeyValue) {
+            $apiKey = \App\Models\ApiKey::where('api_key', $apiKeyValue)
                 ->where('status', \App\Enums\ApiKeyStatus::ACTIVE)
                 ->first();
 
@@ -64,4 +66,3 @@ class ValidateApiKeyIpWhitelist
         return false;
     }
 }
-

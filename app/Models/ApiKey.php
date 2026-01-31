@@ -58,6 +58,11 @@ class ApiKey extends Model
         return $this->belongsTo(User::class, 'revoked_by');
     }
 
+    public function revokedBy()
+    {
+        return $this->belongsTo(User::class, 'revoked_by');
+    }
+
     public function apiRequestLogs()
     {
         return $this->hasMany(ApiRequestLog::class);

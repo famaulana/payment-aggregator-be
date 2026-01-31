@@ -156,8 +156,18 @@ class ApiKeyManagementService
 
     public function getApiKeys(array $filters = [], int $perPage = 20)
     {
+        $user = auth()->user();
+
         $query = ApiKey::with(['client', 'creator', 'revokedBy'])
             ->orderBy('created_at', 'desc');
+
+        // Apply authorization based on user role
+        if ($user && !$user->isSystemOwner()) {
+            // If not a system owner, restrict to user's client
+            if ($user->isClientUser()) {
+                $query->where('client_id', $user->getClientId());
+            }
+        }
 
         if (isset($filters['client_id'])) {
             $query->where('client_id', $filters['client_id']);
@@ -187,8 +197,19 @@ class ApiKeyManagementService
 
     public function getApiKeyById(int $apiKeyId): ApiKey
     {
-        return ApiKey::with(['client', 'creator', 'revokedBy'])
-            ->findOrFail($apiKeyId);
+        $user = auth()->user();
+
+        $query = ApiKey::with(['client', 'creator', 'revokedBy']);
+
+        // Apply authorization based on user role
+        if ($user && !$user->isSystemOwner()) {
+            // If not a system owner, restrict to user's client
+            if ($user->isClientUser()) {
+                $query->where('client_id', $user->getClientId());
+            }
+        }
+
+        return $query->findOrFail($apiKeyId);
     }
 
     public function getClientApiKeys(int $clientId, int $perPage = 20)

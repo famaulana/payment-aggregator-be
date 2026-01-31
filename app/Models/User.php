@@ -177,11 +177,19 @@ class User extends Authenticatable
         return $this->hasMany(AuditTrail::class);
     }
 
-    public function scopeRole($query, $role)
+    public function scopeRoleFilter($query, $role)
     {
         return $query->whereHas('roles', function ($q) use ($role) {
             $q->where('name', $role);
         });
+    }
+
+    /**
+     * Get the user's primary role
+     */
+    public function role()
+    {
+        return $this->roles()->first();
     }
 
     public function scopeClientUsers($query, $clientId)
@@ -217,10 +225,28 @@ class User extends Authenticatable
     public function isSystemOwner(): bool
     {
         return $this->entity_type === SystemOwner::class
-            || $this->hasExactRole('system_owner')
-            || $this->hasRole('system_owner_admin')
-            || $this->hasRole('system_owner_finance')
-            || $this->hasRole('system_owner_support');
+            || $this->hasAnySystemOwnerRole();
+    }
+
+    /**
+     * Check if user has any system owner related role
+     */
+    public function hasAnySystemOwnerRole(): bool
+    {
+        // Get all roles that start with 'system_owner_'
+        $systemOwnerRoles = $this->roles->filter(function ($role) {
+            return strpos($role->name, 'system_owner_') === 0;
+        });
+
+        return $systemOwnerRoles->count() > 0 || $this->hasExactRole('system_owner');
+    }
+
+    /**
+     * Check if user has a specific system owner role
+     */
+    public function hasSystemOwnerRole(string $specificRole): bool
+    {
+        return $this->hasRole('system_owner') || $this->hasRole($specificRole);
     }
 
     public function isClientUser(): bool

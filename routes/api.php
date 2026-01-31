@@ -22,7 +22,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/logout-all', [DashboardAuthController::class, 'logoutAll']);
             Route::get('/me', [DashboardAuthController::class, 'me']);
 
-            Route::middleware(['role:system_owner,system_owner_admin,client'])->prefix('api-keys')->group(function () {
+            Route::middleware(['role:system_owner|system_owner_admin|client'])->prefix('api-keys')->group(function () {
                 Route::get('/', [ApiKeyController::class, 'index']);
                 Route::post('/', [ApiKeyController::class, 'store']);
                 Route::get('/{id}', [ApiKeyController::class, 'show']);
@@ -33,7 +33,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('/client/{clientId}', [ApiKeyController::class, 'getByClient']);
             });
 
-            Route::middleware(['role:system_owner,system_owner_admin'])->prefix('audit-logs')->group(function () {
+            Route::middleware(['role:system_owner|system_owner_admin'])->prefix('audit-logs')->group(function () {
                 Route::get('/', [AuditLogController::class, 'index']);
                 Route::get('/{id}', [AuditLogController::class, 'show']);
             });

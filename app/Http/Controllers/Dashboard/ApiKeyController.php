@@ -27,6 +27,11 @@ class ApiKeyController extends Controller
 
         $apiKeys = $this->apiKeyService->getApiKeys($filters);
 
+        // Transform the collection to use ApiKeyResource
+        $apiKeys = $apiKeys->setCollection($apiKeys->getCollection()->map(function ($item) {
+            return new \App\Http\Resources\ApiKeyResource($item);
+        }));
+
         return $this->pagination(
             paginator: $apiKeys,
             message: __('messages.api_keys_retrieved')
@@ -39,7 +44,11 @@ class ApiKeyController extends Controller
             $user = auth()->user();
             $clientId = $request->client_id;
 
-            if ($user->isClientUser() && !$clientId) {
+            // Authorization: Only system owners can create API keys for other clients
+            if ($user->isClientUser()) {
+                if ($clientId && $clientId != $user->getClientId()) {
+                    return $this->forbidden(__('messages.unauthorized_action'));
+                }
                 $clientId = $user->getClientId();
             }
 
@@ -55,7 +64,7 @@ class ApiKeyController extends Controller
 
             return $this->created(
                 data: [
-                    'api_key' => $result['api_key'],
+                    'api_key' => new \App\Http\Resources\ApiKeyResource($result['api_key']),
                     'credentials' => [
                         'api_key' => $result['credentials']['api_key'],
                         'api_secret' => $result['credentials']['api_secret'],
@@ -78,7 +87,7 @@ class ApiKeyController extends Controller
             $apiKey = $this->apiKeyService->getApiKeyById($id);
 
             return $this->success(
-                data: $apiKey,
+                data: new \App\Http\Resources\ApiKeyResource($apiKey),
                 message: __('messages.api_key_retrieved')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -89,6 +98,19 @@ class ApiKeyController extends Controller
     public function update(int $id, UpdateApiKeyRequest $request): JsonResponse
     {
         try {
+            $user = auth()->user();
+
+            // First, check if the user can access this API key
+            $apiKey = ApiKey::findOrFail($id);
+
+            // Authorization: Only system owners can update any API key
+            if (!$user->isSystemOwner()) {
+                // If not a system owner, user can only update their own client's API keys
+                if ($user->isClientUser() && $apiKey->client_id != $user->getClientId()) {
+                    return $this->forbidden(__('messages.unauthorized_action'));
+                }
+            }
+
             $apiKey = $this->apiKeyService->updateApiKey(
                 apiKeyId: $id,
                 keyName: $request->key_name,
@@ -99,7 +121,7 @@ class ApiKeyController extends Controller
             );
 
             return $this->updated(
-                data: $apiKey,
+                data: new \App\Http\Resources\ApiKeyResource($apiKey),
                 message: __('messages.api_key_updated')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -115,13 +137,26 @@ class ApiKeyController extends Controller
     public function revoke(int $id, Request $request): JsonResponse
     {
         try {
+            $user = auth()->user();
+
+            // First, check if the user can access this API key
+            $apiKey = ApiKey::findOrFail($id);
+
+            // Authorization: Only system owners can revoke any API key
+            if (!$user->isSystemOwner()) {
+                // If not a system owner, user can only revoke their own client's API keys
+                if ($user->isClientUser() && $apiKey->client_id != $user->getClientId()) {
+                    return $this->forbidden(__('messages.unauthorized_action'));
+                }
+            }
+
             $apiKey = $this->apiKeyService->revokeApiKey(
                 apiKeyId: $id,
                 reason: $request->reason,
             );
 
             return $this->success(
-                data: $apiKey,
+                data: new \App\Http\Resources\ApiKeyResource($apiKey),
                 message: __('messages.api_key_revoked')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -137,12 +172,25 @@ class ApiKeyController extends Controller
     public function regenerateSecret(int $id): JsonResponse
     {
         try {
+            $user = auth()->user();
+
+            // First, check if the user can access this API key
+            $apiKey = ApiKey::findOrFail($id);
+
+            // Authorization: Only system owners can regenerate secret of any API key
+            if (!$user->isSystemOwner()) {
+                // If not a system owner, user can only regenerate secret for their own client's API keys
+                if ($user->isClientUser() && $apiKey->client_id != $user->getClientId()) {
+                    return $this->forbidden(__('messages.unauthorized_action'));
+                }
+            }
+
             $result = $this->apiKeyService->regenerateApiSecret($id);
 
             return $this->success(
                 data: [
-                    'api_key' => $result['api_key'],
-                    'api_secret' => $result['api_secret'],
+                    'api_key' => new \App\Http\Resources\ApiKeyResource($result['api_key']),
+                    'api_secret' => $result['api_secret'], // This is the plain secret that was just generated
                     'warning' => 'Please save this new secret securely. You will not be able to see it again.',
                 ],
                 message: __('messages.api_secret_regenerated')
@@ -160,10 +208,23 @@ class ApiKeyController extends Controller
     public function toggleStatus(int $id): JsonResponse
     {
         try {
+            $user = auth()->user();
+
+            // First, check if the user can access this API key
+            $apiKey = ApiKey::findOrFail($id);
+
+            // Authorization: Only system owners can toggle status of any API key
+            if (!$user->isSystemOwner()) {
+                // If not a system owner, user can only toggle their own client's API keys
+                if ($user->isClientUser() && $apiKey->client_id != $user->getClientId()) {
+                    return $this->forbidden(__('messages.unauthorized_action'));
+                }
+            }
+
             $apiKey = $this->apiKeyService->toggleApiKeyStatus($id);
 
             return $this->success(
-                data: $apiKey,
+                data: new \App\Http\Resources\ApiKeyResource($apiKey),
                 message: __('messages.api_key_status_toggled')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -180,6 +241,11 @@ class ApiKeyController extends Controller
     {
         try {
             $apiKeys = $this->apiKeyService->getClientApiKeys($clientId);
+
+            // Transform the collection to use ApiKeyResource
+            $apiKeys = $apiKeys->setCollection($apiKeys->getCollection()->map(function ($item) {
+                return new \App\Http\Resources\ApiKeyResource($item);
+            }));
 
             return $this->pagination(
                 paginator: $apiKeys,
