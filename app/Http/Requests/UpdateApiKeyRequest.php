@@ -10,7 +10,7 @@ class UpdateApiKeyRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->isSystemOwner();
+        return auth()->check() && (auth()->user()->isSystemOwner() || auth()->user()->isClientUser());
     }
 
     public function rules(): array

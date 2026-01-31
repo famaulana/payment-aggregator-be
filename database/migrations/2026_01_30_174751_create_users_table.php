@@ -19,11 +19,10 @@ return new class extends Migration
             $table->string('password', 255);
             $table->rememberToken();
             $table->string('full_name', 255);
-            
-            $table->unsignedBigInteger('client_id')->nullable()->comment('For client, head_office, merchant roles');
-            $table->unsignedBigInteger('head_office_id')->nullable()->comment('For head_office, merchant roles');
-            $table->unsignedBigInteger('merchant_id')->nullable()->comment('For merchant role only');
-            
+
+            $table->string('entity_type')->nullable()->comment('SystemOwner, Client, HeadOffice, or Merchant');
+            $table->unsignedBigInteger('entity_id')->nullable()->comment('ID of the entity');
+
             $table->string('fcm_token', 500)->nullable();
             $table->string('status', 20)->default('active')->comment('active, inactive, suspended');
             $table->timestamp('last_login_at')->nullable();
@@ -33,7 +32,7 @@ return new class extends Migration
             $table->index('status', 'idx_users_status');
             $table->index('email', 'idx_email');
             $table->index('username', 'idx_username');
-            $table->index(['status', 'client_id'], 'idx_users_status_client');
+            $table->index(['entity_type', 'entity_id'], 'idx_users_entity');
         });
     }
 

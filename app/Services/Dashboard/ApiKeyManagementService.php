@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Dashboard;
 
 use App\Models\ApiKey;
 use App\Models\Client;
 use App\Models\User;
+use App\Services\Shared\AuditTrailService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -106,8 +107,7 @@ class ApiKeyManagementService
 
         app(AuditTrailService::class)->log(
             actionType: AuditTrailService::ACTION_API_KEY_UPDATE,
-            entityType: 'api_key',
-            entityId: $apiKeyId,
+            auditable: $apiKey,
             oldValues: $oldValues,
             newValues: $newValues,
             notes: "API Key updated: {$apiKey->key_name}"
@@ -141,10 +141,9 @@ class ApiKeyManagementService
             'api_secret_hashed' => Hash::make($plainApiSecret),
         ]);
 
-        $this->auditService->log(
+        app(\App\Services\AuditTrailService::class)->log(
             actionType: 'api_secret_regenerate',
-            entityType: 'api_key',
-            entityId: $apiKeyId,
+            auditable: $apiKey,
             newValues: ['regenerated_at' => now()->toDateTimeString()],
             notes: "API Secret regenerated for: {$apiKey->key_name}"
         );
@@ -176,10 +175,10 @@ class ApiKeyManagementService
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('key_name', 'like', "%{$search}%")
-                  ->orWhereHas('client', function ($q) use ($search) {
-                      $q->where('client_name', 'like', "%{$search}%")
-                        ->orWhere('client_code', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('client', function ($q) use ($search) {
+                        $q->where('client_name', 'like', "%{$search}%")
+                            ->orWhere('client_code', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -204,15 +203,15 @@ class ApiKeyManagementService
     {
         $apiKey = ApiKey::findOrFail($apiKeyId);
 
-        $newStatus = $apiKey->status === 'active' ? 'inactive' : 'active';
+        $oldStatus = $apiKey->status;
+        $newStatus = $oldStatus === 'active' ? 'inactive' : 'active';
 
         $apiKey->update(['status' => $newStatus]);
 
-        $this->auditService->log(
+        app(\App\Services\AuditTrailService::class)->log(
             actionType: 'api_key_status_toggle',
-            entityType: 'api_key',
-            entityId: $apiKeyId,
-            oldValues: ['status' => $apiKey->status],
+            auditable: $apiKey,
+            oldValues: ['status' => $oldStatus],
             newValues: ['status' => $newStatus],
             notes: "API Key status changed to: {$newStatus}"
         );

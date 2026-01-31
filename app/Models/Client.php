@@ -12,6 +12,7 @@ class Client extends Model
     use HasFactory;
 
     protected $fillable = [
+        'system_owner_id',
         'client_code',
         'client_name',
         'business_type',
@@ -73,6 +74,11 @@ class Client extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function systemOwner()
+    {
+        return $this->belongsTo(SystemOwner::class);
+    }
+
     public function kyb()
     {
         return $this->hasOne(ClientKyb::class);
@@ -110,6 +116,6 @@ class Client extends Model
 
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->morphMany(User::class, 'entity');
     }
 }

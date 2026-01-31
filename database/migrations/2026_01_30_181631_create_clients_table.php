@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('system_owner_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('client_code', 50)->unique()->comment('Internal client code');
             $table->string('client_name', 255);
             $table->string('business_type', 100)->nullable()->comment('Business type/industry');
@@ -48,6 +49,7 @@ return new class extends Migration
 
             $table->index('client_code', 'idx_client_code');
             $table->index(['status', 'available_balance'], 'idx_clients_status_balance');
+            $table->index('system_owner_id', 'idx_clients_system_owner');
         });
     }
 

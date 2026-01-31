@@ -3,7 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Enums\ResponseCode;
-use App\Services\ResponseService;
+use App\Services\Shared\ResponseService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;

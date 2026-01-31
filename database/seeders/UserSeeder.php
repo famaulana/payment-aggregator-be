@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\SystemOwner;
 use App\Models\Client;
 use App\Models\HeadOffice;
 use App\Models\Merchant;
@@ -13,14 +14,30 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        $systemOwner = SystemOwner::where('code', 'JDP')->first();
         $client = Client::where('client_code', 'JDP001')->first();
 
-        if (!$client) {
+        if (!$systemOwner || !$client) {
             return;
         }
 
-        // System Owner - Has client_id (JDP as partner)
-        $systemOwner = User::updateOrCreate(
+        // Super Admin - Entity: SystemOwner (HIGHEST LEVEL)
+        $superAdmin = User::updateOrCreate(
+            ['email' => 'superadmin@jdp.co.id'],
+            [
+                'username' => 'superadmin',
+                'full_name' => 'Super Admin',
+                'password' => Hash::make('SuperAdmin123!'),
+                'status' => 'active',
+                'email_verified_at' => now(),
+                'entity_type' => SystemOwner::class,
+                'entity_id' => $systemOwner->id,
+            ]
+        );
+        $superAdmin->assignSingleRole('system_owner');
+
+        // System Owner Staff - Entity: SystemOwner
+        $systemOwnerAdmin = User::updateOrCreate(
             ['email' => 'system-owner@jdp.co.id'],
             [
                 'username' => 'system_owner',
@@ -28,14 +45,44 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'status' => 'active',
                 'email_verified_at' => now(),
-                'client_id' => $client->id,
-                'head_office_id' => null,
-                'merchant_id' => null,
+                'entity_type' => SystemOwner::class,
+                'entity_id' => $systemOwner->id,
+                'created_by' => $superAdmin->id ?? null,
             ]
         );
-        $systemOwner->assignSingleRole('system_owner');
+        $systemOwnerAdmin->assignSingleRole('system_owner_admin');
 
-        // Client Admin - Has client_id only
+        $systemOwnerFinance = User::updateOrCreate(
+            ['email' => 'system-owner-finance@jdp.co.id'],
+            [
+                'username' => 'system_owner_finance',
+                'full_name' => 'System Owner Finance',
+                'password' => Hash::make('password123'),
+                'status' => 'active',
+                'email_verified_at' => now(),
+                'entity_type' => SystemOwner::class,
+                'entity_id' => $systemOwner->id,
+                'created_by' => $superAdmin->id ?? null,
+            ]
+        );
+        $systemOwnerFinance->assignSingleRole('system_owner_finance');
+
+        $systemOwnerSupport = User::updateOrCreate(
+            ['email' => 'system-owner-support@jdp.co.id'],
+            [
+                'username' => 'system_owner_support',
+                'full_name' => 'System Owner Support',
+                'password' => Hash::make('password123'),
+                'status' => 'active',
+                'email_verified_at' => now(),
+                'entity_type' => SystemOwner::class,
+                'entity_id' => $systemOwner->id,
+                'created_by' => $superAdmin->id ?? null,
+            ]
+        );
+        $systemOwnerSupport->assignSingleRole('system_owner_support');
+
+        // Client Admin - Entity: Client
         $clientAdmin = User::updateOrCreate(
             ['email' => 'client@jdp.co.id'],
             [
@@ -44,15 +91,14 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'status' => 'active',
                 'email_verified_at' => now(),
-                'client_id' => $client->id,
-                'head_office_id' => null,
-                'merchant_id' => null,
-                'created_by' => $systemOwner->id ?? null,
+                'entity_type' => Client::class,
+                'entity_id' => $client->id,
+                'created_by' => $systemOwnerAdmin->id ?? null,
             ]
         );
         $clientAdmin->assignSingleRole('client');
 
-        // Head Office Admins - Has client_id + head_office_id
+        // Head Office Admins - Entity: HeadOffice
         $hoJkt = HeadOffice::where('client_id', $client->id)->where('code', 'HO-JKT')->first();
         if ($hoJkt) {
             $hoAdminJkt = User::updateOrCreate(
@@ -63,10 +109,9 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'client_id' => $client->id,
-                    'head_office_id' => $hoJkt->id,
-                    'merchant_id' => null,
-                    'created_by' => $systemOwner->id ?? null,
+                    'entity_type' => HeadOffice::class,
+                    'entity_id' => $hoJkt->id,
+                    'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
             );
             $hoAdminJkt->assignSingleRole('head_office');
@@ -82,10 +127,9 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'client_id' => $client->id,
-                    'head_office_id' => $hoSby->id,
-                    'merchant_id' => null,
-                    'created_by' => $systemOwner->id ?? null,
+                    'entity_type' => HeadOffice::class,
+                    'entity_id' => $hoSby->id,
+                    'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
             );
             $hoAdminSby->assignSingleRole('head_office');
@@ -101,16 +145,15 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'client_id' => $client->id,
-                    'head_office_id' => $hoBdg->id,
-                    'merchant_id' => null,
-                    'created_by' => $systemOwner->id ?? null,
+                    'entity_type' => HeadOffice::class,
+                    'entity_id' => $hoBdg->id,
+                    'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
             );
             $hoAdminBdg->assignSingleRole('head_office');
         }
 
-        // Merchant Admins - Has client_id + head_office_id + merchant_id
+        // Merchant Admins - Entity: Merchant
         $merchant1 = Merchant::where('client_id', $client->id)->where('merchant_code', 'MER-JKT-001')->first();
         if ($merchant1) {
             $merchantAdmin1 = User::updateOrCreate(
@@ -121,10 +164,9 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'client_id' => $client->id,
-                    'head_office_id' => $merchant1->head_office_id,
-                    'merchant_id' => $merchant1->id,
-                    'created_by' => $systemOwner->id ?? null,
+                    'entity_type' => Merchant::class,
+                    'entity_id' => $merchant1->id,
+                    'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
             );
             $merchantAdmin1->assignSingleRole('merchant');
@@ -140,10 +182,9 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'client_id' => $client->id,
-                    'head_office_id' => $merchant2->head_office_id,
-                    'merchant_id' => $merchant2->id,
-                    'created_by' => $systemOwner->id ?? null,
+                    'entity_type' => Merchant::class,
+                    'entity_id' => $merchant2->id,
+                    'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
             );
             $merchantAdmin2->assignSingleRole('merchant');
@@ -159,10 +200,9 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'client_id' => $client->id,
-                    'head_office_id' => $merchant3->head_office_id,
-                    'merchant_id' => $merchant3->id,
-                    'created_by' => $systemOwner->id ?? null,
+                    'entity_type' => Merchant::class,
+                    'entity_id' => $merchant3->id,
+                    'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
             );
             $merchantAdmin3->assignSingleRole('merchant');
@@ -178,10 +218,9 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'client_id' => $client->id,
-                    'head_office_id' => $merchant4->head_office_id,
-                    'merchant_id' => $merchant4->id,
-                    'created_by' => $systemOwner->id ?? null,
+                    'entity_type' => Merchant::class,
+                    'entity_id' => $merchant4->id,
+                    'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
             );
             $merchantAdmin4->assignSingleRole('merchant');

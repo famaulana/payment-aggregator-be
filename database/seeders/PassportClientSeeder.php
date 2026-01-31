@@ -49,71 +49,75 @@ class PassportClientSeeder extends Seeder
 
     private function createPasswordClients(): void
     {
-        // FE Dashboard Client - Dengan refresh token (30 hari)
-        $dashboardClientId = Str::uuid();
-        $dashboardClientSecretPlain = Str::random(40);
+        $dashboardClientId = config('services.passport.dashboard_client_id') ?? Str::uuid();
+        $dashboardClientSecretPlain = config('services.passport.dashboard_client_secret') ?? Str::random(40);
         $dashboardClientSecretHashed = Hash::make($dashboardClientSecretPlain);
 
-        DB::table('oauth_clients')->insert([
-            'id' => $dashboardClientId,
-            'owner_type' => null,
-            'owner_id' => null,
-            'name' => 'Dashboard Password Grant',
-            'secret' => $dashboardClientSecretHashed,
-            'provider' => 'users',
-            'redirect_uris' => json_encode([config('app.url')]),
-            'grant_types' => json_encode(['password', 'refresh_token']),
-            'revoked' => false,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        DB::table('oauth_clients')->updateOrInsert(
+            ['id' => $dashboardClientId],
+            [
+                'id' => $dashboardClientId,
+                'owner_type' => null,
+                'owner_id' => null,
+                'name' => 'Dashboard Password Grant',
+                'secret' => $dashboardClientSecretHashed,
+                'provider' => 'users',
+                'redirect_uris' => json_encode([config('app.url')]),
+                'grant_types' => json_encode(['password', 'refresh_token']),
+                'revoked' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
 
-        // API Server Client - TANPA refresh token (access token 60 menit)
-        $apiServerClientId = Str::uuid();
-        $apiServerClientSecretPlain = Str::random(40);
+        $apiServerClientId = config('services.passport.api_server_client_id') ?? Str::uuid();
+        $apiServerClientSecretPlain = config('services.passport.api_server_client_secret') ?? Str::random(40);
         $apiServerClientSecretHashed = Hash::make($apiServerClientSecretPlain);
 
-        DB::table('oauth_clients')->insert([
-            'id' => $apiServerClientId,
-            'owner_type' => null,
-            'owner_id' => null,
-            'name' => 'API Server Password Grant',
-            'secret' => $apiServerClientSecretHashed,
-            'provider' => 'users',
-            'redirect_uris' => json_encode([config('app.url')]),
-            'grant_types' => json_encode(['password']),
-            'revoked' => false,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        DB::table('oauth_clients')->updateOrInsert(
+            ['id' => $apiServerClientId],
+            [
+                'id' => $apiServerClientId,
+                'owner_type' => null,
+                'owner_id' => null,
+                'name' => 'API Server Password Grant',
+                'secret' => $apiServerClientSecretHashed,
+                'provider' => 'users',
+                'redirect_uris' => json_encode([config('app.url')]),
+                'grant_types' => json_encode(['password']),
+                'revoked' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
 
-        // Display secrets untuk disalin ke .env
-        $this->command->info('=================================================');
-        $this->command->info('PASSPORT CLIENTS CREATED SUCCESSFULLY');
-        $this->command->info('=================================================');
-        $this->command->info("Dashboard Client ID: {$dashboardClientId}");
-        $this->command->info("Dashboard Client Secret: {$dashboardClientSecretPlain}");
-        $this->command->info('');
-        $this->command->info("API Server Client ID: {$apiServerClientId}");
-        $this->command->info("API Server Client Secret: {$apiServerClientSecretPlain}");
-        $this->command->info('=================================================');
-        $this->command->newLine();
-        $this->command->warn('IMPORTANT: Update your .env file with these values!');
-        $this->command->warn('PASSPORT_DASHBOARD_CLIENT_ID=' . $dashboardClientId);
-        $this->command->warn('PASSPORT_DASHBOARD_CLIENT_SECRET=' . $dashboardClientSecretPlain);
-        $this->command->warn('PASSPORT_API_SERVER_CLIENT_ID=' . $apiServerClientId);
-        $this->command->warn('PASSPORT_API_SERVER_CLIENT_SECRET=' . $apiServerClientSecretPlain);
-        $this->command->info('=================================================');
-
-        // Save to temporary file for testing
-        file_put_contents(base_path('.env.passport'), http_build_query([
+        $this->updateEnvFile([
             'PASSPORT_DASHBOARD_CLIENT_ID' => $dashboardClientId,
             'PASSPORT_DASHBOARD_CLIENT_SECRET' => $dashboardClientSecretPlain,
             'PASSPORT_API_SERVER_CLIENT_ID' => $apiServerClientId,
             'PASSPORT_API_SERVER_CLIENT_SECRET' => $apiServerClientSecretPlain,
-        ], '', "\n"));
+        ]);
+    }
 
-        $this->command->info('Plain secrets saved to .env.passport for testing');
-        $this->command->info('=================================================');
+    private function updateEnvFile(array $data): void
+    {
+        $envFile = base_path('.env');
+        $envContent = file_get_contents($envFile);
+
+        foreach ($data as $key => $value) {
+            $keyPattern = preg_quote($key, '/');
+            
+            if (preg_match("/^{$keyPattern}=/m", $envContent)) {
+                $envContent = preg_replace(
+                    "/^{$keyPattern}=.*/m",
+                    "{$key}={$value}",
+                    $envContent
+                );
+            } else {
+                $envContent .= "\n{$key}={$value}";
+            }
+        }
+
+        file_put_contents($envFile, $envContent);
     }
 }

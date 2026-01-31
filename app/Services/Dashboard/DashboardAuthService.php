@@ -1,28 +1,24 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Dashboard;
 
-use App\Enums\ApiKeyStatus;
-use App\Models\ApiKey;
 use App\Models\User;
-use App\Services\Contracts\AuthServiceInterface;
+use App\Services\Shared\AuditTrailService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
 use Laravel\Passport\Token;
 use Laravel\Passport\AccessToken;
 
-class AuthService implements AuthServiceInterface
+class DashboardAuthService
 {
     private const DASHBOARD_CLIENT = 'dashboard';
-    private const API_SERVER_CLIENT = 'api_server';
 
     public function __construct(
         private AuditTrailService $auditService
     ) {}
 
-    public function login(string $email, string $password, string $clientType = self::DASHBOARD_CLIENT): array
+    public function login(string $email, string $password): array
     {
         $user = User::where('email', $email)->first();
 
@@ -36,12 +32,10 @@ class AuthService implements AuthServiceInterface
             throw new AuthenticationException(__('auth.inactive'));
         }
 
-        $passportClient = $this->getPassportClient($clientType);
-
+        $passportClient = $this->getPassportClient(self::DASHBOARD_CLIENT);
         $tokenData = $this->issuePasswordGrantToken($user, $passportClient, $password);
 
         $this->updateLastLogin($user);
-
         $this->auditService->logLoginSuccess($user);
 
         return [
@@ -50,49 +44,9 @@ class AuthService implements AuthServiceInterface
         ];
     }
 
-    public function loginWithApiKey(string $apiKey, string $apiSecret): array
-    {
-        $keyRecord = ApiKey::where('api_key', $apiKey)
-            ->where('status', 'active')
-            ->with('client')
-            ->first();
-
-        if (!$keyRecord) {
-            throw new AuthenticationException(__('auth.invalid_api_key'));
-        }
-
-        if (!Hash::check($apiSecret, $keyRecord->api_secret_hashed)) {
-            throw new AuthenticationException(__('auth.invalid_api_secret'));
-        }
-
-        $this->validateApiKeyAccess($keyRecord);
-
-        $user = $this->getOrCreateApiUser($keyRecord->client);
-
-        $passportClient = $this->getPassportClient(self::API_SERVER_CLIENT);
-
-        $password = $this->generateApiUserPassword($user);
-
-        $tokenData = $this->issuePasswordGrantToken($user, $passportClient, $password);
-
-        $this->updateLastUsedApiKey($keyRecord);
-
-        $this->auditService->logApiKeyLogin($keyRecord->id, $keyRecord->client->client_code);
-
-        return [
-            'client' => [
-                'id' => $keyRecord->client->id,
-                'name' => $keyRecord->client->client_name,
-                'code' => $keyRecord->client->client_code,
-            ],
-            'token' => $tokenData,
-        ];
-    }
-
     public function refreshToken(string $refreshToken): array
     {
         $passportClient = $this->getPassportClient(self::DASHBOARD_CLIENT);
-
         $tokenData = $this->issueRefreshGrantToken($refreshToken, $passportClient);
 
         $user = auth()->user();
@@ -118,33 +72,19 @@ class AuthService implements AuthServiceInterface
         return true;
     }
 
-    public function logoutAllTokens(User $user): bool
+    public function logoutAll(): bool
     {
-        $this->auditService->logLogout($user);
+        $user = auth()->user();
 
-        foreach ($user->tokens as $token) {
-            $token->revoke();
+        if ($user) {
+            $this->auditService->logLogout($user);
+
+            foreach ($user->tokens as $token) {
+                $token->revoke();
+            }
         }
 
         return true;
-    }
-
-    public function getUserTokens(User $user): \Illuminate\Support\Collection
-    {
-        return $user->tokens()
-            ->with('client')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($token) {
-                return [
-                    'id' => $token->id,
-                    'client' => $token->client->name,
-                    'scopes' => $token->scopes,
-                    'revoked' => $token->revoked,
-                    'expires_at' => $token->expires_at ? $token->expires_at->toDateTimeString() : null,
-                    'created_at' => $token->created_at->toDateTimeString(),
-                ];
-            });
     }
 
     private function getPassportClient(string $clientType): \Laravel\Passport\Client
@@ -248,42 +188,8 @@ class AuthService implements AuthServiceInterface
             ->where('id', $refreshToken)
             ->update(['revoked' => true]);
 
-        $password = $user->password; 
+        $password = $user->password;
         return $this->issuePasswordGrantToken($user, $client, $password);
-    }
-
-    private function validateApiKeyAccess(ApiKey $apiKey): void
-    {
-        if ($apiKey->status !== ApiKeyStatus::ACTIVE) {
-            throw new AuthenticationException(__('auth.api_key_inactive'));
-        }
-    }
-
-    private function getOrCreateApiUser(\App\Models\Client $client): User
-    {
-        $user = User::firstOrCreate(
-            [
-                'email' => "api_{$client->client_code}@{$client->id}.internal",
-            ],
-            [
-                'username' => "api_{$client->client_code}",
-                'full_name' => "API User - {$client->client_name}",
-                'password' => Hash::make(str()->random(64)),
-                'status' => 'active',
-                'client_id' => $client->id,
-            ]
-        );
-
-        if (!$user->hasRole('client')) {
-            $user->assignSingleRole('client');
-        }
-
-        return $user;
-    }
-
-    private function generateApiUserPassword(User $user): string
-    {
-        return $user->password;
     }
 
     private function updateLastLogin(User $user): void
@@ -291,17 +197,10 @@ class AuthService implements AuthServiceInterface
         $user->update(['last_login_at' => now()]);
     }
 
-    private function updateLastUsedApiKey(ApiKey $apiKey): void
-    {
-        $apiKey->update([
-            'last_used_at' => now(),
-            'total_requests' => $apiKey->total_requests + 1,
-        ]);
-    }
-
     private function transformUser(User $user): array
     {
-        $entityType = $this->getUserEntityType($user);
+        $entity = $user->entity;
+        $entityType = $user->getEntityTypeLabel();
 
         $data = [
             'id' => $user->id,
@@ -310,59 +209,47 @@ class AuthService implements AuthServiceInterface
             'full_name' => $user->full_name,
             'role' => $user->role_name,
             'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
-            'entity_type' => $entityType,
+            'entity_type' => strtolower(str_replace(' ', '_', $entityType)),
+            'status' => $user->status,
         ];
 
-        if ($entityType === 'client' && $user->client) {
+        if ($entity instanceof \App\Models\Client) {
             $data['client'] = [
-                'id' => $user->client->id,
-                'code' => $user->client->client_code,
-                'name' => $user->client->client_name,
+                'id' => $entity->id,
+                'code' => $entity->client_code,
+                'name' => $entity->client_name,
             ];
-        } elseif ($entityType === 'head_office' && $user->headOffice) {
+        } elseif ($entity instanceof \App\Models\HeadOffice) {
             $data['head_office'] = [
-                'id' => $user->headOffice->id,
-                'code' => $user->headOffice->code,
-                'name' => $user->headOffice->name,
+                'id' => $entity->id,
+                'code' => $entity->code,
+                'name' => $entity->name,
             ];
             $data['client'] = [
-                'id' => $user->headOffice->client->id,
-                'code' => $user->headOffice->client->client_code,
-                'name' => $user->headOffice->client->client_name,
+                'id' => $entity->client->id,
+                'code' => $entity->client->client_code,
+                'name' => $entity->client->client_name,
             ];
-        } elseif ($entityType === 'merchant' && $user->merchant) {
+        } elseif ($entity instanceof \App\Models\Merchant) {
             $data['merchant'] = [
-                'id' => $user->merchant->id,
-                'code' => $user->merchant->merchant_code,
-                'name' => $user->merchant->merchant_name,
+                'id' => $entity->id,
+                'code' => $entity->merchant_code,
+                'name' => $entity->merchant_name,
             ];
-            $data['head_office'] = [
-                'id' => $user->merchant->headOffice->id,
-                'code' => $user->merchant->headOffice->code,
-                'name' => $user->merchant->headOffice->name,
-            ];
+            if ($entity->headOffice) {
+                $data['head_office'] = [
+                    'id' => $entity->headOffice->id,
+                    'code' => $entity->headOffice->code,
+                    'name' => $entity->headOffice->name,
+                ];
+            }
             $data['client'] = [
-                'id' => $user->merchant->client->id,
-                'code' => $user->merchant->client->client_code,
-                'name' => $user->merchant->client->client_name,
+                'id' => $entity->client->id,
+                'code' => $entity->client->client_code,
+                'name' => $entity->client->client_name,
             ];
         }
 
         return $data;
-    }
-
-    private function getUserEntityType(User $user): ?string
-    {
-        if ($user->client_id && !$user->head_office_id && !$user->merchant_id) {
-            return 'client';
-        }
-        if ($user->head_office_id && !$user->merchant_id) {
-            return 'head_office';
-        }
-        if ($user->merchant_id) {
-            return 'merchant';
-        }
-
-        return null;
     }
 }

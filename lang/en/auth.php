@@ -20,6 +20,8 @@ return [
     'refresh_success' => 'Token refreshed successfully',
     'refresh_failed' => 'Failed to refresh token',
     'refresh_error' => 'An error occurred while refreshing token',
+    'invalid_refresh_token' => 'Invalid refresh token',
+    'refresh_token_expired' => 'Refresh token has expired',
 
     // Profile
     'profile_retrieved' => 'Profile retrieved successfully',
@@ -42,4 +44,9 @@ return [
     'api_key_not_found' => 'API key not found',
     'api_key_inactive' => 'API key is inactive',
     'ip_not_allowed' => 'IP address not allowed',
+    'client_not_found' => 'Client not found',
+    'unauthenticated' => 'Unauthenticated',
+    'token_not_found' => 'Token not found',
+    'no_user_associated_with_client' => 'No user associated with client',
+    'user_not_found' => 'User not found',
 ];

@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.api' => \App\Http\Middleware\ApiKeyMiddleware::class,
             'throttle.api' => \App\Http\Middleware\RateLimitMiddleware::class,
             'log.request' => \App\Http\Middleware\RequestLoggingMiddleware::class,
+            'log.api' => \App\Http\Middleware\LogApiRequest::class,
             'verify.signature' => \App\Http\Middleware\SignatureValidationMiddleware::class,
             'validate.ip' => \App\Http\Middleware\ValidateApiKeyIpWhitelist::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

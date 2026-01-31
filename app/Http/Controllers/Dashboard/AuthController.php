@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RefreshTokenRequest;
-use App\Services\AuthService;
+use App\Services\Dashboard\DashboardAuthService;
 use App\Enums\ResponseCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 class AuthController extends Controller
 {
     public function __construct(
-        private AuthService $authService
+        private DashboardAuthService $authService
     ) {}
 
     public function login(LoginRequest $request): JsonResponse
@@ -22,8 +22,7 @@ class AuthController extends Controller
         try {
             $result = $this->authService->login(
                 email: $request->email,
-                password: $request->password,
-                clientType: 'dashboard'
+                password: $request->password
             );
 
             return $this->success(
@@ -115,7 +114,8 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
-        $entityType = $this->getUserEntityType($user);
+        $entity = $user->entity;
+        $entityType = $this->getUserEntityTypeFromEntity($user);
 
         $data = [
             'id' => $user->id,
@@ -128,71 +128,61 @@ class AuthController extends Controller
             'last_login_at' => $user->last_login_at?->toDateTimeString(),
         ];
 
-        if ($entityType === 'client' && $user->client) {
+        if ($entityType === 'client' && $entity instanceof \App\Models\Client) {
             $data['client'] = [
-                'id' => $user->client->id,
-                'code' => $user->client->client_code,
-                'name' => $user->client->client_name,
+                'id' => $entity->id,
+                'code' => $entity->client_code,
+                'name' => $entity->client_name,
             ];
-        } elseif ($entityType === 'head_office' && $user->headOffice) {
+        } elseif ($entityType === 'head_office' && $entity instanceof \App\Models\HeadOffice) {
             $data['head_office'] = [
-                'id' => $user->headOffice->id,
-                'code' => $user->headOffice->code,
-                'name' => $user->headOffice->name,
+                'id' => $entity->id,
+                'code' => $entity->code,
+                'name' => $entity->name,
             ];
             $data['client'] = [
-                'id' => $user->headOffice->client->id,
-                'code' => $user->headOffice->client->client_code,
-                'name' => $user->headOffice->client->client_name,
+                'id' => $entity->client->id,
+                'code' => $entity->client->client_code,
+                'name' => $entity->client->client_name,
             ];
-        } elseif ($entityType === 'merchant' && $user->merchant) {
+        } elseif ($entityType === 'merchant' && $entity instanceof \App\Models\Merchant) {
             $data['merchant'] = [
-                'id' => $user->merchant->id,
-                'code' => $user->merchant->merchant_code,
-                'name' => $user->merchant->merchant_name,
+                'id' => $entity->id,
+                'code' => $entity->merchant_code,
+                'name' => $entity->merchant_name,
             ];
             $data['head_office'] = [
-                'id' => $user->merchant->headOffice->id,
-                'code' => $user->merchant->headOffice->code,
-                'name' => $user->merchant->headOffice->name,
+                'id' => $entity->headOffice->id,
+                'code' => $entity->headOffice->code,
+                'name' => $entity->headOffice->name,
             ];
             $data['client'] = [
-                'id' => $user->merchant->client->id,
-                'code' => $user->merchant->client->client_code,
-                'name' => $user->merchant->client->client_name,
+                'id' => $entity->client->id,
+                'code' => $entity->client->client_code,
+                'name' => $entity->client->client_name,
+            ];
+        } elseif ($entityType === 'system_owner' && $entity instanceof \App\Models\SystemOwner) {
+            $data['system_owner'] = [
+                'id' => $entity->id,
+                'name' => $entity->name ?? $entity->pic_name,
+                'email' => $entity->email ?? $entity->pic_email,
             ];
         }
 
         return $this->success(data: $data, message: __('auth.profile_retrieved'));
     }
 
-    public function tokens(Request $request): JsonResponse
+    private function getUserEntityTypeFromEntity($user): ?string
     {
-        try {
-            $user = $request->user();
-            $tokens = $this->authService->getUserTokens($user);
+        $entity = $user->entity;
 
-            return $this->success(
-                data: ['tokens' => $tokens],
-                message: __('auth.tokens_retrieved')
-            );
-        } catch (\Exception $e) {
-            return $this->error(
-                code: ResponseCode::INTERNAL_SERVER_ERROR,
-                message: __('auth.tokens_error')
-            );
-        }
-    }
-
-    private function getUserEntityType($user): ?string
-    {
-        if ($user->client_id && !$user->head_office_id && !$user->merchant_id) {
+        if ($entity instanceof \App\Models\SystemOwner) {
+            return 'system_owner';
+        } elseif ($entity instanceof \App\Models\Client) {
             return 'client';
-        }
-        if ($user->head_office_id && !$user->merchant_id) {
+        } elseif ($entity instanceof \App\Models\HeadOffice) {
             return 'head_office';
-        }
-        if ($user->merchant_id) {
+        } elseif ($entity instanceof \App\Models\Merchant) {
             return 'merchant';
         }
 

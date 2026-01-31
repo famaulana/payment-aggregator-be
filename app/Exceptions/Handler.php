@@ -3,7 +3,8 @@
 namespace App\Exceptions;
 
 use App\Enums\ResponseCode;
-use App\Services\ResponseService;
+use App\Exceptions\AppException;
+use App\Services\Shared\ResponseService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;

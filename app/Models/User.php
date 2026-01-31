@@ -14,14 +14,20 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles, HasSingleRole;
 
+    protected $guard_name = 'api';
+
+    protected $appends = [
+        'role_name',
+        'permissions_list',
+    ];
+
     protected $fillable = [
         'username',
         'email',
         'password',
         'full_name',
-        'client_id',
-        'head_office_id',
-        'merchant_id',
+        'entity_type',
+        'entity_id',
         'fcm_token',
         'status',
         'last_login_at',
@@ -74,6 +80,26 @@ class User extends Authenticatable
     public function merchant()
     {
         return $this->belongsTo(Merchant::class);
+    }
+
+    public function systemOwner()
+    {
+        return $this->belongsTo(SystemOwner::class);
+    }
+
+    public function entity()
+    {
+        return $this->morphTo();
+    }
+
+    public function getRoleNameAttribute(): string
+    {
+        return $this->roles->first()?->name ?? '';
+    }
+
+    public function getPermissionsListAttribute(): array
+    {
+        return $this->getAllPermissions()->pluck('name')->toArray();
     }
 
     public function creator()
@@ -160,17 +186,26 @@ class User extends Authenticatable
 
     public function scopeClientUsers($query, $clientId)
     {
-        return $query->where('client_id', $clientId);
+        return $query->where('entity_type', Client::class)
+            ->where('entity_id', $clientId);
     }
 
     public function scopeHeadOfficeUsers($query, $headOfficeId)
     {
-        return $query->where('head_office_id', $headOfficeId);
+        return $query->where('entity_type', HeadOffice::class)
+            ->where('entity_id', $headOfficeId);
     }
 
     public function scopeMerchantUsers($query, $merchantId)
     {
-        return $query->where('merchant_id', $merchantId);
+        return $query->where('entity_type', Merchant::class)
+            ->where('entity_id', $merchantId);
+    }
+
+    public function scopeSystemOwnerUsers($query, $systemOwnerId)
+    {
+        return $query->where('entity_type', SystemOwner::class)
+            ->where('entity_id', $systemOwnerId);
     }
 
     public function hasExactRole($role): bool
@@ -181,7 +216,8 @@ class User extends Authenticatable
 
     public function isSystemOwner(): bool
     {
-        return $this->hasExactRole('system_owner')
+        return $this->entity_type === SystemOwner::class
+            || $this->hasExactRole('system_owner')
             || $this->hasRole('system_owner_admin')
             || $this->hasRole('system_owner_finance')
             || $this->hasRole('system_owner_support');
@@ -189,7 +225,8 @@ class User extends Authenticatable
 
     public function isClientUser(): bool
     {
-        return $this->hasExactRole('client')
+        return $this->entity_type === Client::class
+            || $this->hasExactRole('client')
             || $this->hasRole('client_admin')
             || $this->hasRole('client_finance')
             || $this->hasRole('client_operations');
@@ -197,14 +234,16 @@ class User extends Authenticatable
 
     public function isHeadOfficeUser(): bool
     {
-        return $this->hasExactRole('head_office')
+        return $this->entity_type === HeadOffice::class
+            || $this->hasExactRole('head_office')
             || $this->hasRole('head_office_admin')
             || $this->hasRole('head_office_supervisor');
     }
 
     public function isMerchantUser(): bool
     {
-        return $this->hasExactRole('merchant')
+        return $this->entity_type === Merchant::class
+            || $this->hasExactRole('merchant')
             || $this->hasRole('merchant_admin')
             || $this->hasRole('merchant_cashier');
     }
@@ -260,45 +299,148 @@ class User extends Authenticatable
             return true;
         }
 
+        $userEntity = $this->entity;
+
+        if ($entityType === 'system_owner') {
+            return $this->entity_type === SystemOwner::class && $this->entity_id === $entityId;
+        }
+
         if ($entityType === 'client') {
-            if ($this->isClientUser()) {
-                return $this->client_id === $entityId;
+            if ($this->entity_type === SystemOwner::class) {
+                return true;
             }
-            if ($this->isHeadOfficeUser() || $this->isMerchantUser()) {
-                return $this->client_id === $entityId;
+            if ($this->entity_type === Client::class) {
+                return $this->entity_id === $entityId;
+            }
+            if ($this->entity_type === HeadOffice::class && $userEntity) {
+                return $userEntity->client_id === $entityId;
+            }
+            if ($this->entity_type === Merchant::class && $userEntity) {
+                return $userEntity->client_id === $entityId;
             }
         }
 
         if ($entityType === 'head_office') {
-            if ($this->isClientUser()) {
-                return \App\Models\HeadOffice::where('client_id', $this->client_id)
+            if ($this->entity_type === SystemOwner::class) {
+                return true;
+            }
+            if ($this->entity_type === Client::class && $userEntity) {
+                return \App\Models\HeadOffice::where('client_id', $userEntity->id)
                     ->where('id', $entityId)
                     ->exists();
             }
-            if ($this->isHeadOfficeUser()) {
-                return $this->head_office_id === $entityId;
+            if ($this->entity_type === HeadOffice::class) {
+                return $this->entity_id === $entityId;
             }
-            if ($this->isMerchantUser()) {
-                return $this->head_office_id === $entityId;
+            if ($this->entity_type === Merchant::class && $userEntity) {
+                return $userEntity->head_office_id === $entityId;
             }
         }
 
         if ($entityType === 'merchant') {
-            if ($this->isClientUser()) {
-                return \App\Models\Merchant::where('client_id', $this->client_id)
+            if ($this->entity_type === SystemOwner::class) {
+                return true;
+            }
+            if ($this->entity_type === Client::class && $userEntity) {
+                return \App\Models\Merchant::where('client_id', $userEntity->id)
                     ->where('id', $entityId)
                     ->exists();
             }
-            if ($this->isHeadOfficeUser()) {
-                return \App\Models\Merchant::where('head_office_id', $this->head_office_id)
+            if ($this->entity_type === HeadOffice::class && $userEntity) {
+                return \App\Models\Merchant::where('head_office_id', $userEntity->id)
                     ->where('id', $entityId)
                     ->exists();
             }
-            if ($this->isMerchantUser()) {
-                return $this->merchant_id === $entityId;
+            if ($this->entity_type === Merchant::class) {
+                return $this->entity_id === $entityId;
             }
         }
 
         return false;
+    }
+
+    public function getEntityTypeLabel(): string
+    {
+        if ($this->entity_type === SystemOwner::class) {
+            return 'System Owner';
+        }
+        if ($this->entity_type === Client::class) {
+            return 'Client';
+        }
+        if ($this->entity_type === HeadOffice::class) {
+            return 'Head Office';
+        }
+        if ($this->entity_type === Merchant::class) {
+            return 'Merchant';
+        }
+
+        return 'Unknown';
+    }
+
+    public function getEntityName(): string
+    {
+        $entity = $this->entity;
+
+        if (!$entity) {
+            return 'N/A';
+        }
+
+        if ($entity instanceof SystemOwner) {
+            return $entity->name;
+        }
+        if ($entity instanceof Client) {
+            return $entity->client_name;
+        }
+        if ($entity instanceof HeadOffice) {
+            return $entity->name;
+        }
+        if ($entity instanceof Merchant) {
+            return $entity->merchant_name;
+        }
+
+        return 'N/A';
+    }
+
+    public function getClientId(): ?int
+    {
+        $entity = $this->entity;
+
+        if ($entity instanceof SystemOwner) {
+            return null;
+        }
+        if ($entity instanceof Client) {
+            return $entity->id;
+        }
+        if ($entity instanceof HeadOffice) {
+            return $entity->client_id;
+        }
+        if ($entity instanceof Merchant) {
+            return $entity->client_id;
+        }
+
+        return null;
+    }
+
+    public function getHeadOfficeId(): ?int
+    {
+        $entity = $this->entity;
+
+        if ($entity instanceof HeadOffice) {
+            return $entity->id;
+        }
+        if ($entity instanceof Merchant) {
+            return $entity->head_office_id;
+        }
+
+        return null;
+    }
+
+    public function getMerchantId(): ?int
+    {
+        if ($this->entity_type === Merchant::class) {
+            return $this->entity_id;
+        }
+
+        return null;
     }
 }

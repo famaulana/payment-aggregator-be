@@ -33,14 +33,7 @@
     }
   ],
   "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{access_token}}",
-        "type": "string"
-      }
-    ]
+    "type": "noauth"
   },
   "event": [
     {
@@ -148,7 +141,7 @@
       "name": "Dashboard - Authentication",
       "item": [
         {
-          "name": "Login",
+          "name": "Login as System Owner",
           "request": {
             "method": "POST",
             "header": [
@@ -184,6 +177,234 @@
               "path": ["api", "{{api_version}}", "dashboard", "login"]
             },
             "description": "Authenticate dashboard user with email and password credentials. Returns user profile, access token, refresh token, and token expiry information. The access token should be used in the Authorization header for subsequent authenticated requests."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Save tokens to environment variables",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.response_code === '0000' && response.data) {",
+                  "        // Save access token",
+                  "        pm.environment.set('dashboard_access_token', response.data.access_token);",
+                  "        ",
+                  "        // Save refresh token",
+                  "        pm.environment.set('refresh_token', response.data.refresh_token);",
+                  "        ",
+                  "        // Save user info",
+                  "        pm.environment.set('user_id', response.data.user.id);",
+                  "        pm.environment.set('user_email', response.data.user.email);",
+                  "        pm.environment.set('user_role', response.data.user.role);",
+                  "        ",
+                  "        console.log('Access Token: ' + response.data.access_token.substring(0, 20) + '...');",
+                  "        console.log('Refresh Token saved');",
+                  "        console.log('User: ' + response.data.user.full_name);",
+                  "    }",
+                  "} else {",
+                  "    console.log('Login failed with status code: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "auth": {
+            "type": "noauth"
+          }
+        },
+        {
+          "name": "Login as Client Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "client@jdp.co.id",
+                  "type": "text",
+                  "description": "Registered client admin email address."
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text",
+                  "description": "User password. Minimum 8 characters required."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "login"]
+            },
+            "description": "Authenticate client admin user with email and password credentials."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Save tokens to environment variables",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.response_code === '0000' && response.data) {",
+                  "        // Save access token",
+                  "        pm.environment.set('dashboard_access_token', response.data.access_token);",
+                  "        ",
+                  "        // Save refresh token",
+                  "        pm.environment.set('refresh_token', response.data.refresh_token);",
+                  "        ",
+                  "        // Save user info",
+                  "        pm.environment.set('user_id', response.data.user.id);",
+                  "        pm.environment.set('user_email', response.data.user.email);",
+                  "        pm.environment.set('user_role', response.data.user.role);",
+                  "        ",
+                  "        console.log('Access Token: ' + response.data.access_token.substring(0, 20) + '...');",
+                  "        console.log('Refresh Token saved');",
+                  "        console.log('User: ' + response.data.user.full_name);",
+                  "    }",
+                  "} else {",
+                  "    console.log('Login failed with status code: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "auth": {
+            "type": "noauth"
+          }
+        },
+        {
+          "name": "Login as Head Office Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "ho-jakarta@jdp.co.id",
+                  "type": "text",
+                  "description": "Registered head office admin email address."
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text",
+                  "description": "User password. Minimum 8 characters required."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "login"]
+            },
+            "description": "Authenticate head office admin user with email and password credentials."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Save tokens to environment variables",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.response_code === '0000' && response.data) {",
+                  "        // Save access token",
+                  "        pm.environment.set('dashboard_access_token', response.data.access_token);",
+                  "        ",
+                  "        // Save refresh token",
+                  "        pm.environment.set('refresh_token', response.data.refresh_token);",
+                  "        ",
+                  "        // Save user info",
+                  "        pm.environment.set('user_id', response.data.user.id);",
+                  "        pm.environment.set('user_email', response.data.user.email);",
+                  "        pm.environment.set('user_role', response.data.user.role);",
+                  "        ",
+                  "        console.log('Access Token: ' + response.data.access_token.substring(0, 20) + '...');",
+                  "        console.log('Refresh Token saved');",
+                  "        console.log('User: ' + response.data.user.full_name);",
+                  "    }",
+                  "} else {",
+                  "    console.log('Login failed with status code: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "auth": {
+            "type": "noauth"
+          }
+        },
+        {
+          "name": "Login as Merchant Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "merchant-001@jdp.co.id",
+                  "type": "text",
+                  "description": "Registered merchant admin email address."
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text",
+                  "description": "User password. Minimum 8 characters required."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "login"]
+            },
+            "description": "Authenticate merchant admin user with email and password credentials."
           },
           "response": [],
           "event": [
@@ -295,6 +516,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
               }
             ],
             "url": {
@@ -303,25 +528,6 @@
               "path": ["api", "{{api_version}}", "dashboard", "me"]
             },
             "description": "Retrieve current authenticated user profile information. Returns user details including username, email, full name, role, permissions, and associated entity data (client, head office, or merchant) based on user type."
-          },
-          "response": []
-        },
-        {
-          "name": "Get Active Tokens",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/{{api_version}}/dashboard/tokens",
-              "host": ["{{base_url}}"],
-              "path": ["api", "{{api_version}}", "dashboard", "tokens"]
-            },
-            "description": "List all active access tokens for the current user. Shows token IDs, names, creation dates, and expiry dates. Useful for managing multiple sessions and devices."
           },
           "response": []
         },
@@ -411,6 +617,147 @@
               }
             }
           ]
+        },
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "me"]
+            },
+            "description": "Retrieve current authenticated user profile information. Returns user details including username, email, full name, role, permissions, and associated entity data (client, head office, or merchant) based on user type."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Tokens",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/tokens",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "tokens"]
+            },
+            "description": "List all active access tokens for the current user. Shows token IDs, names, creation dates, and expiry dates. Useful for managing multiple sessions and devices."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout Current Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": []
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "logout"]
+            },
+            "description": "Logout from the current session by revoking the access token. The token will be immediately invalidated and cannot be used for subsequent requests."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Clear access token after logout",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset('dashboard_access_token');",
+                  "    console.log('Logged out successfully');",
+                  "    console.log('Access token cleared from environment');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout All Sessions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": []
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/logout-all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "logout-all"]
+            },
+            "description": "Logout from all active sessions across all devices by revoking all access tokens associated with the current user. This is useful for security purposes in case of suspected unauthorized access."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Clear all tokens after logout all",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset('dashboard_access_token');",
+                  "    pm.environment.unset('refresh_token');",
+                  "    console.log('Logged out from all sessions successfully');",
+                  "    console.log('All tokens cleared from environment');",
+                  "}"
+                ]
+              }
+            }
+          ]
         }
       ],
       "description": "Dashboard authentication endpoints for system owners, client admins, head office admins, and merchant admins"
@@ -426,6 +773,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
               }
             ],
             "url": {
@@ -472,6 +823,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
               }
             ],
             "body": {
@@ -546,6 +901,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
               }
             ],
             "url": {
@@ -576,6 +935,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
               }
             ],
             "body": {
@@ -642,6 +1005,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
               }
             ],
             "body": {
@@ -683,6 +1050,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
               }
             ],
             "body": {
@@ -717,6 +1088,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
               }
             ],
             "body": {
@@ -747,6 +1122,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
               }
             ],
             "url": {
@@ -779,6 +1158,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
               }
             ],
             "url": {
@@ -841,6 +1224,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dashboard_access_token}}"
               }
             ],
             "url": {
@@ -866,7 +1253,7 @@
       "name": "API Client - Authentication",
       "item": [
         {
-          "name": "Login with API Key",
+          "name": "Login with Production API Key",
           "request": {
             "method": "POST",
             "header": [
@@ -939,6 +1326,152 @@
           }
         },
         {
+          "name": "Login with Development API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "api_key",
+                  "value": "pk_dev_jdp_abcdef1234567890",
+                  "type": "text",
+                  "description": "Public API key assigned to the client for development environment."
+                },
+                {
+                  "key": "api_secret",
+                  "value": "sk_dev_jdp_devsecretkey0987654321",
+                  "type": "text",
+                  "description": "Secret API key for development environment authentication."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "login"]
+            },
+            "description": "Authenticate API client using development API key and secret credentials."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Save API client token to environment",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.response_code === '0000' && response.data) {",
+                  "        // Save API client access token",
+                  "        pm.environment.set('api_client_token', response.data.access_token);",
+                  "        ",
+                  "        // Save client info",
+                  "        pm.environment.set('client_id', response.data.client.id);",
+                  "        pm.environment.set('client_code', response.data.client.code);",
+                  "        pm.environment.set('client_name', response.data.client.name);",
+                  "        ",
+                  "        console.log('API Client Login successful');",
+                  "        console.log('Client: ' + response.data.client.name);",
+                  "        console.log('Access Token: ' + response.data.access_token.substring(0, 20) + '...');",
+                  "    }",
+                  "} else {",
+                  "    console.log('API Client login failed with status code: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "auth": {
+            "type": "noauth"
+          }
+        },
+        {
+          "name": "Login with Staging API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "api_key",
+                  "value": "pk_staging_jdp_9876543210fedcba",
+                  "type": "text",
+                  "description": "Public API key assigned to the client for staging environment."
+                },
+                {
+                  "key": "api_secret",
+                  "value": "sk_staging_jdp_stagingsecretabcdefgh",
+                  "type": "text",
+                  "description": "Secret API key for staging environment authentication."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "login"]
+            },
+            "description": "Authenticate API client using staging API key and secret credentials."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Save API client token to environment",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.response_code === '0000' && response.data) {",
+                  "        // Save API client access token",
+                  "        pm.environment.set('api_client_token', response.data.access_token);",
+                  "        ",
+                  "        // Save client info",
+                  "        pm.environment.set('client_id', response.data.client.id);",
+                  "        pm.environment.set('client_code', response.data.client.code);",
+                  "        pm.environment.set('client_name', response.data.client.name);",
+                  "        ",
+                  "        console.log('API Client Login successful');",
+                  "        console.log('Client: ' + response.data.client.name);",
+                  "        console.log('Access Token: ' + response.data.access_token.substring(0, 20) + '...');",
+                  "    }",
+                  "} else {",
+                  "    console.log('API Client login failed with status code: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "auth": {
+            "type": "noauth"
+          }
+        },
+        {
           "name": "Get API Client Profile",
           "request": {
             "method": "GET",
@@ -946,6 +1479,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_client_token}}"
               }
             ],
             "url": {
@@ -969,6 +1506,10 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_client_token}}"
               }
             ],
             "body": {

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\ResponseService;
+use App\Services\Shared\ResponseService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\JsonResponse;

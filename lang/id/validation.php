@@ -1,20 +1,46 @@
 <?php
 
 return [
-    // Custom validation messages for API requests
-    'email_required' => 'Field email wajib diisi',
-    'email_invalid' => 'Email harus berupa alamat email yang valid',
-    'password_required' => 'Field password wajib diisi',
-    'password_min' => 'Password harus minimal 8 karakter',
-    'refresh_token_required' => 'Field refresh token wajib diisi',
-    'api_key_required' => 'Field API key wajib diisi',
-    'api_key_not_found' => 'API key tidak ditemukan',
-    'api_secret_required' => 'Field API secret wajib diisi',
-    'client_id_required' => 'Field client ID wajib diisi',
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Authentication
+    |--------------------------------------------------------------------------
+    */
+    'api_key_required' => 'API key wajib diisi',
+    'api_secret_required' => 'API secret wajib diisi',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Client & API Key
+    |--------------------------------------------------------------------------
+    */
+    'client_id_required' => 'Client ID wajib diisi',
     'client_not_found' => 'Klien tidak ditemukan',
-    'key_name_required' => 'Field key name wajib diisi',
-    'environment_required' => 'Field environment wajib diisi',
-    'environment_invalid' => 'Environment harus dev, staging, atau production',
-    'ip_whitelist_invalid' => 'IP whitelist berisi alamat IP tidak valid',
-    'key_name_string' => 'Key name harus berupa string',
+
+    'key_name_required' => 'Nama key wajib diisi',
+    'key_name_string' => 'Nama key harus berupa string',
+
+    'environment_required' => 'Environment wajib diisi',
+    'environment_invalid' => 'Nilai environment tidak valid',
+
+    'ip_whitelist_invalid' => 'Format alamat IP tidak valid',
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Authentication
+    |--------------------------------------------------------------------------
+    */
+    'email_required' => 'Email wajib diisi',
+    'email_invalid' => 'Format email tidak valid',
+
+    'password_required' => 'Password wajib diisi',
+    'password_min' => 'Password minimal :min karakter',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Token
+    |--------------------------------------------------------------------------
+    */
+    'refresh_token_required' => 'Refresh token wajib diisi',
 ];

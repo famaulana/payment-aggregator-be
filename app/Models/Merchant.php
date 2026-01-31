@@ -74,6 +74,6 @@ class Merchant extends Model
 
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->morphMany(User::class, 'entity');
     }
 }

@@ -10,13 +10,14 @@ class CreateApiKeyRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->isSystemOwner();
+        return auth()->check() && (auth()->user()->isSystemOwner() || auth()->user()->isClientUser());
     }
 
     public function rules(): array
     {
-        return [
-            'client_id' => ['required', 'integer', 'exists:clients,id'],
+        $user = auth()->user();
+
+        $rules = [
             'key_name' => ['required', 'string', 'max:255'],
             'environment' => ['required', 'in:dev,staging,production'],
             'ip_whitelist' => ['nullable', 'array'],
@@ -25,6 +26,14 @@ class CreateApiKeyRequest extends FormRequest
             'rate_limit_per_hour' => ['nullable', 'integer', 'min:1', 'max:10000'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
+
+        if ($user->isSystemOwner()) {
+            $rules['client_id'] = ['required', 'integer', 'exists:clients,id'];
+        } elseif ($user->isClientUser()) {
+            $rules['client_id'] = ['nullable', 'integer', 'exists:clients,id'];
+        }
+
+        return $rules;
     }
 
     public function messages(): array

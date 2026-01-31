@@ -20,6 +20,8 @@ return [
     'refresh_success' => 'Token berhasil diperbarui',
     'refresh_failed' => 'Gagal memperbarui token',
     'refresh_error' => 'Terjadi kesalahan saat memperbarui token',
+    'invalid_refresh_token' => 'Refresh token tidak valid',
+    'refresh_token_expired' => 'Refresh token sudah kedaluwarsa',
 
     // Profile
     'profile_retrieved' => 'Profil berhasil diambil',
@@ -42,4 +44,9 @@ return [
     'api_key_not_found' => 'API key tidak ditemukan',
     'api_key_inactive' => 'API key tidak aktif',
     'ip_not_allowed' => 'Alamat IP tidak diizinkan',
+    'client_not_found' => 'Klien tidak ditemukan',
+    'unauthenticated' => 'Belum terotentikasi',
+    'token_not_found' => 'Token tidak ditemukan',
+    'no_user_associated_with_client' => 'Tidak ada pengguna yang terkait dengan klien',
+    'user_not_found' => 'Pengguna tidak ditemukan',
 ];

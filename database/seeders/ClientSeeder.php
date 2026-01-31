@@ -13,9 +13,16 @@ class ClientSeeder extends Seeder
         $jakarta = DB::table('provinces')->where('code', '31')->first();
         $jakartaSelatan = DB::table('cities')->where('code', '3171')->first();
 
-        Client::updateOrCreate(
-            ['client_code' => 'JDP001'],
+        $systemOwner = \App\Models\SystemOwner::where('code', 'JDP')->first();
+
+        if (!$systemOwner) {
+            return;
+        }
+
+        \App\Models\Client::updateOrCreate(
+            ['client_code' => 'JDP001', 'system_owner_id' => $systemOwner->id],
             [
+                'system_owner_id' => $systemOwner->id,
                 'client_name' => 'PT Jago Digital Payment',
                 'business_type' => 'Financial Technology',
                 'kyb_status' => 'approved',

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Shared;
 
 use App\Enums\ResponseCode;
 use Illuminate\Http\JsonResponse;

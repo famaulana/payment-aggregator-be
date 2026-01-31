@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateApiKeyRequest;
 use App\Http\Requests\UpdateApiKeyRequest;
-use App\Services\ApiKeyManagementService;
+use App\Services\Dashboard\ApiKeyManagementService;
 use App\Enums\ResponseCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -36,8 +36,15 @@ class ApiKeyController extends Controller
     public function store(CreateApiKeyRequest $request): JsonResponse
     {
         try {
+            $user = auth()->user();
+            $clientId = $request->client_id;
+
+            if ($user->isClientUser() && !$clientId) {
+                $clientId = $user->getClientId();
+            }
+
             $result = $this->apiKeyService->createApiKey(
-                clientId: $request->client_id,
+                clientId: $clientId,
                 keyName: $request->key_name,
                 environment: $request->environment,
                 ipWhitelist: $request->ip_whitelist,

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApiLoginRequest;
-use App\Services\AuthService;
+use App\Services\Api\ApiAuthService;
 use App\Enums\ResponseCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,13 +12,13 @@ use Illuminate\Http\Request;
 class AuthController extends Controller
 {
     public function __construct(
-        private AuthService $authService
+        private ApiAuthService $authService
     ) {}
 
     public function login(ApiLoginRequest $request): JsonResponse
     {
         try {
-            $result = $this->authService->loginWithApiKey(
+            $result = $this->authService->login(
                 apiKey: $request->api_key,
                 apiSecret: $request->api_secret
             );
@@ -64,9 +64,15 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
-        $client = $user->client;
 
-        $apiKey = \App\Models\ApiKey::where('client_id', $user->client_id)
+        // For API users, get the client from the entity relationship
+        $client = $user->entity;
+
+        if (!$client || !($client instanceof \App\Models\Client)) {
+            return $this->error(message: __('auth.client_not_found'), code: 404);
+        }
+
+        $apiKey = \App\Models\ApiKey::where('client_id', $client->id)
             ->where('status', \App\Enums\ApiKeyStatus::ACTIVE)
             ->first();
 

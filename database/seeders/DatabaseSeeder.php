@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             PassportClientSeeder::class,
             LocationSeeder::class,
+            SystemOwnerSeeder::class,
             ClientSeeder::class,
             HeadOfficeSeeder::class,
             MerchantSeeder::class,
