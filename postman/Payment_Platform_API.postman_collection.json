@@ -1,71 +1,227 @@
 {
   "info": {
     "name": "Payment Platform API",
-    "description": "Complete API collection for Payment Platform with Authentication, API Key Management, and Audit Logs",
+    "description": "Complete API collection for Payment Platform including Dashboard and API Client endpoints",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "1.0.0"
+    "_exporter_id": "payment-platform-v1"
   },
   "variable": [
     {
-      "key": "baseUrl",
+      "key": "base_url",
       "value": "{{baseUrl}}",
       "type": "string"
     },
     {
-      "key": "apiVersion",
+      "key": "api_version",
       "value": "v1",
       "type": "string"
     },
     {
-      "key": "accessToken",
-      "value": "",
+      "key": "access_token",
+      "value": "{{dashboard_access_token}}",
       "type": "string"
     },
     {
-      "key": "refreshToken",
-      "value": "",
+      "key": "api_key",
+      "value": "{{api_client_key}}",
       "type": "string"
     },
     {
-      "key": "apiKey",
-      "value": "",
+      "key": "api_secret",
+      "value": "{{api_client_secret}}",
       "type": "string"
-    },
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
     {
-      "key": "apiSecret",
-      "value": "",
-      "type": "string"
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Collection-level pre-request script",
+          "// This runs before every request in the collection",
+          "",
+          "// Log current request info",
+          "console.log('---');",
+          "console.log('Request: ' + pm.info.requestName);",
+          "console.log('Environment: ' + pm.environment.name);",
+          "",
+          "// Check if we have a valid token",
+          "const token = pm.environment.get('dashboard_access_token');",
+          "if (token) {",
+          "    console.log('Token present: ' + token.substring(0, 20) + '...');",
+          "} else {",
+          "    console.log('No token found in environment');",
+          "}",
+          "",
+          "// Show current base URL",
+          "const baseUrl = pm.environment.get('baseUrl');",
+          "if (baseUrl) {",
+          "    console.log('Base URL: ' + baseUrl);",
+          "}"
+        ]
+      }
     }
   ],
   "item": [
     {
-      "name": "01. Authentication",
+      "name": "OAuth",
       "item": [
         {
-          "name": "Dashboard Login",
+          "name": "Get Access Token",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/x-www-form-urlencoded"
               },
               {
-                "key": "Accept-Language",
-                "value": "en"
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"system-owner@pg-lit.test\",\n  \"password\": \"password123\"\n}"
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text",
+                  "description": "OAuth grant type - must be 'password' for user credentials"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{oauth_client_id}}",
+                  "type": "text",
+                  "description": "OAuth client ID from Passport configuration"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "{{oauth_client_secret}}",
+                  "type": "text",
+                  "description": "OAuth client secret from Passport configuration"
+                },
+                {
+                  "key": "username",
+                  "value": "{{dashboard_email}}",
+                  "type": "text",
+                  "description": "User email address for authentication"
+                },
+                {
+                  "key": "password",
+                  "value": "{{dashboard_password}}",
+                  "type": "text",
+                  "description": "User password - must be at least 8 characters"
+                },
+                {
+                  "key": "scope",
+                  "value": "*",
+                  "type": "text",
+                  "description": "OAuth scope - use '*' for all permissions"
+                }
+              ]
             },
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "auth", "login"]
-            }
+              "raw": "{{base_url}}/oauth/token",
+              "host": ["{{base_url}}"],
+              "path": ["oauth", "token"]
+            },
+            "description": "Obtain OAuth access token using Laravel Passport. This endpoint returns an access token that can be used to authenticate subsequent requests. The token expires after the configured lifetime."
           },
           "response": []
+        }
+      ],
+      "description": "OAuth 2.0 token management endpoints using Laravel Passport"
+    },
+    {
+      "name": "Dashboard - Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "system-owner@jdp.co.id",
+                  "type": "text",
+                  "description": "Registered user email address. Must exist in the users table."
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text",
+                  "description": "User password. Minimum 8 characters required."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "login"]
+            },
+            "description": "Authenticate dashboard user with email and password credentials. Returns user profile, access token, refresh token, and token expiry information. The access token should be used in the Authorization header for subsequent authenticated requests."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Save tokens to environment variables",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.response_code === '0000' && response.data) {",
+                  "        // Save access token",
+                  "        pm.environment.set('dashboard_access_token', response.data.access_token);",
+                  "        ",
+                  "        // Save refresh token",
+                  "        pm.environment.set('refresh_token', response.data.refresh_token);",
+                  "        ",
+                  "        // Save user info",
+                  "        pm.environment.set('user_id', response.data.user.id);",
+                  "        pm.environment.set('user_email', response.data.user.email);",
+                  "        pm.environment.set('user_role', response.data.user.role);",
+                  "        ",
+                  "        console.log('Access Token: ' + response.data.access_token.substring(0, 20) + '...');",
+                  "        console.log('Refresh Token saved');",
+                  "        console.log('User: ' + response.data.user.full_name);",
+                  "    }",
+                  "} else {",
+                  "    console.log('Login failed with status code: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "auth": {
+            "type": "noauth"
+          }
         },
         {
           "name": "Refresh Token",
@@ -74,76 +230,79 @@
             "header": [
               {
                 "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}"
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "refresh_token",
+                  "value": "{{refresh_token}}",
+                  "type": "text",
+                  "description": "Refresh token obtained from login response. Used to generate new access token without re-authentication."
+                }
+              ]
             },
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/refresh",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "auth", "refresh"]
-            }
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "refresh"]
+            },
+            "description": "Refresh an expired or soon-to-expire access token using the refresh token. Returns new access token and refresh token. The old tokens will be revoked."
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Save new tokens after refresh",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.response_code === '0000' && response.data) {",
+                  "        // Update access token",
+                  "        pm.environment.set('dashboard_access_token', response.data.access_token);",
+                  "        ",
+                  "        // Update refresh token",
+                  "        pm.environment.set('refresh_token', response.data.refresh_token);",
+                  "        ",
+                  "        console.log('Tokens refreshed successfully');",
+                  "        console.log('New Access Token: ' + response.data.access_token.substring(0, 20) + '...');",
+                  "    }",
+                  "} else {",
+                  "    console.log('Token refresh failed with status code: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "auth": {
+            "type": "noauth"
+          }
         },
         {
-          "name": "API Server Login (API Key)",
+          "name": "Get Current User Profile",
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
               {
-                "key": "Content-Type",
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"api_key\": \"{{apiKey}}\",\n  \"api_secret\": \"{{apiSecret}}\"\n}"
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "me"]
             },
-            "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/api/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "auth", "api", "login"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Profile (Dashboard)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "auth", "me"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Profile (API Server)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/api/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "auth", "api", "me"]
-            }
+            "description": "Retrieve current authenticated user profile information. Returns user details including username, email, full name, role, permissions, and associated entity data (client, head office, or merchant) based on user type."
           },
           "response": []
         },
@@ -153,58 +312,111 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/tokens",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "auth", "tokens"]
-            }
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/tokens",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "tokens"]
+            },
+            "description": "List all active access tokens for the current user. Shows token IDs, names, creation dates, and expiry dates. Useful for managing multiple sessions and devices."
           },
           "response": []
         },
         {
-          "name": "Logout",
+          "name": "Logout Current Session",
           "request": {
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": []
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "auth", "logout"]
-            }
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "logout"]
+            },
+            "description": "Logout from the current session by revoking the access token. The token will be immediately invalidated and cannot be used for subsequent requests."
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Clear access token after logout",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset('dashboard_access_token');",
+                  "    console.log('Logged out successfully');",
+                  "    console.log('Access token cleared from environment');",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
-          "name": "Logout All Devices",
+          "name": "Logout All Sessions",
           "request": {
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": []
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/logout-all",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "auth", "logout-all"]
-            }
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/logout-all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "logout-all"]
+            },
+            "description": "Logout from all active sessions across all devices by revoking all access tokens associated with the current user. This is useful for security purposes in case of suspected unauthorized access."
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Clear all tokens after logout all",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset('dashboard_access_token');",
+                  "    pm.environment.unset('refresh_token');",
+                  "    console.log('Logged out from all sessions successfully');",
+                  "    console.log('All tokens cleared from environment');",
+                  "}"
+                ]
+              }
+            }
+          ]
         }
-      ]
+      ],
+      "description": "Dashboard authentication endpoints for system owners, client admins, head office admins, and merchant admins"
     },
     {
-      "name": "02. API Key Management",
+      "name": "Dashboard - API Key Management",
       "item": [
         {
           "name": "List All API Keys",
@@ -212,25 +424,39 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/api-keys?page=1&per_page=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "api-keys"],
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/api-keys?client_id=1&status=active&environment=production",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "api-keys"],
               "query": [
                 {
-                  "key": "page",
-                  "value": "1"
+                  "key": "client_id",
+                  "value": "1",
+                  "description": "Filter API keys by client ID (optional)"
                 },
                 {
-                  "key": "per_page",
-                  "value": "20"
+                  "key": "status",
+                  "value": "active",
+                  "description": "Filter by status: active, revoked, or all (optional)"
+                },
+                {
+                  "key": "environment",
+                  "value": "production",
+                  "description": "Filter by environment: dev, staging, or production (optional)"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Search term to find API keys by name or key (optional)",
+                  "disabled": true
                 }
               ]
-            }
+            },
+            "description": "Retrieve paginated list of all API keys with optional filtering. System owners can view all API keys. Results include key details, client information, rate limits, and status. Use query parameters to filter results."
           },
           "response": []
         },
@@ -240,23 +466,75 @@
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
               },
               {
-                "key": "Content-Type",
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"client_id\": 1,\n  \"key_name\": \"Production API Key\",\n  \"environment\": \"production\",\n  \"ip_whitelist\": [\"192.168.1.100\", \"10.0.0.50\"],\n  \"rate_limit_per_minute\": 100,\n  \"rate_limit_per_hour\": 5000,\n  \"notes\": \"Production API key for main client\"\n}"
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "client_id",
+                  "value": "1",
+                  "type": "text",
+                  "description": "Client ID to associate with the API key. Must be a valid client ID."
+                },
+                {
+                  "key": "key_name",
+                  "value": "Production API Key - DPI",
+                  "type": "text",
+                  "description": "Human-readable name for the API key. Maximum 255 characters."
+                },
+                {
+                  "key": "environment",
+                  "value": "production",
+                  "type": "text",
+                  "description": "Environment type for the API key. Must be one of: dev, staging, or production."
+                },
+                {
+                  "key": "ip_whitelist[]",
+                  "value": "192.168.1.100",
+                  "type": "text",
+                  "description": "Array of whitelisted IP addresses allowed to use this API key. Leave empty to allow all IPs.",
+                  "disabled": true
+                },
+                {
+                  "key": "ip_whitelist[]",
+                  "value": "10.0.0.50",
+                  "type": "text",
+                  "description": "Additional IP address for whitelist",
+                  "disabled": true
+                },
+                {
+                  "key": "rate_limit_per_minute",
+                  "value": "60",
+                  "type": "text",
+                  "description": "Maximum number of requests allowed per minute. Must be between 1 and 1000. Default is 60."
+                },
+                {
+                  "key": "rate_limit_per_hour",
+                  "value": "1000",
+                  "type": "text",
+                  "description": "Maximum number of requests allowed per hour. Must be between 1 and 10000. Default is 1000."
+                },
+                {
+                  "key": "notes",
+                  "value": "Primary production API key for PT Digital Payment Indonesia",
+                  "type": "text",
+                  "description": "Additional notes or description for the API key. Maximum 1000 characters. Optional."
+                }
+              ]
             },
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/api-keys",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "api-keys"]
-            }
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/api-keys",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "api-keys"]
+            },
+            "description": "Create a new API key for a client with specified configuration. Returns the API key and secret credentials. IMPORTANT: Save the API secret securely as it will only be shown once and cannot be retrieved again."
           },
           "response": []
         },
@@ -266,21 +544,23 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/api-keys/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "api-keys", ":id"],
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/api-keys/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "api-keys", ":id"],
               "variable": [
                 {
                   "key": "id",
-                  "value": "1"
+                  "value": "1",
+                  "description": "API Key ID to retrieve"
                 }
               ]
-            }
+            },
+            "description": "Retrieve detailed information about a specific API key including key name, client information, environment, rate limits, IP whitelist, usage statistics, and status. The API secret is not included in the response."
           },
           "response": []
         },
@@ -290,29 +570,63 @@
             "method": "PUT",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
               },
               {
-                "key": "Content-Type",
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"key_name\": \"Updated Key Name\",\n  \"ip_whitelist\": [\"192.168.1.100\"],\n  \"rate_limit_per_minute\": 120,\n  \"rate_limit_per_hour\": 6000,\n  \"notes\": \"Updated configuration\"\n}"
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "key_name",
+                  "value": "Updated Production Key",
+                  "type": "text",
+                  "description": "Updated human-readable name for the API key"
+                },
+                {
+                  "key": "ip_whitelist[]",
+                  "value": "192.168.1.200",
+                  "type": "text",
+                  "description": "Updated array of whitelisted IP addresses. Provide all IPs to replace existing list.",
+                  "disabled": true
+                },
+                {
+                  "key": "rate_limit_per_minute",
+                  "value": "100",
+                  "type": "text",
+                  "description": "Updated rate limit per minute. Must be between 1 and 1000."
+                },
+                {
+                  "key": "rate_limit_per_hour",
+                  "value": "2000",
+                  "type": "text",
+                  "description": "Updated rate limit per hour. Must be between 1 and 10000."
+                },
+                {
+                  "key": "notes",
+                  "value": "Updated with new rate limits and IP restrictions",
+                  "type": "text",
+                  "description": "Updated notes for the API key"
+                }
+              ]
             },
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/api-keys/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "api-keys", ":id"],
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/api-keys/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "api-keys", ":id"],
               "variable": [
                 {
                   "key": "id",
-                  "value": "1"
+                  "value": "1",
+                  "description": "API Key ID to update"
                 }
               ]
-            }
+            },
+            "description": "Update existing API key configuration including name, IP whitelist, rate limits, and notes. Cannot update the API key itself or client association. Use Regenerate Secret endpoint to create a new secret."
           },
           "response": []
         },
@@ -322,29 +636,38 @@
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
               },
               {
-                "key": "Content-Type",
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"reason\": \"Security compromise suspected\"\n}"
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "reason",
+                  "value": "Security compromise - client requested immediate revocation",
+                  "type": "text",
+                  "description": "Reason for revoking the API key. This will be recorded in the audit logs for compliance and security tracking."
+                }
+              ]
             },
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/api-keys/:id/revoke",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "api-keys", ":id", "revoke"],
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/api-keys/:id/revoke",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "api-keys", ":id", "revoke"],
               "variable": [
                 {
                   "key": "id",
-                  "value": "1"
+                  "value": "1",
+                  "description": "API Key ID to revoke"
                 }
               ]
-            }
+            },
+            "description": "Permanently revoke an API key making it immediately unusable for authentication. Provide a reason which will be logged in the audit trail. This action cannot be undone - a new API key must be created if needed."
           },
           "response": []
         },
@@ -354,21 +677,31 @@
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": []
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/api-keys/:id/regenerate-secret",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "api-keys", ":id", "regenerate-secret"],
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/api-keys/:id/regenerate-secret",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "api-keys", ":id", "regenerate-secret"],
               "variable": [
                 {
                   "key": "id",
-                  "value": "1"
+                  "value": "1",
+                  "description": "API Key ID to regenerate secret for"
                 }
               ]
-            }
+            },
+            "description": "Generate a new API secret for the specified API key. The old secret will be immediately invalidated. IMPORTANT: Save the new secret securely as it will only be displayed once and cannot be retrieved again. Update all systems using this API key immediately."
           },
           "response": []
         },
@@ -378,52 +711,65 @@
             "method": "POST",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": []
+            },
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/api-keys/:id/toggle-status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "api-keys", ":id", "toggle-status"],
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/api-keys/:id/toggle-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "api-keys", ":id", "toggle-status"],
               "variable": [
                 {
                   "key": "id",
-                  "value": "1"
+                  "value": "1",
+                  "description": "API Key ID to toggle status"
                 }
               ]
-            }
+            },
+            "description": "Toggle the active status of an API key. If active, it will be deactivated. If inactive, it will be activated. Use this to temporarily disable an API key without revoking it permanently."
           },
           "response": []
         },
         {
-          "name": "Get Client API Keys",
+          "name": "Get API Keys by Client",
           "request": {
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/api-keys/client/:clientId",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "api-keys", "client", ":clientId"],
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/api-keys/client/:clientId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "api-keys", "client", ":clientId"],
               "variable": [
                 {
                   "key": "clientId",
-                  "value": "1"
+                  "value": "1",
+                  "description": "Client ID to get API keys for"
                 }
               ]
-            }
+            },
+            "description": "Retrieve all API keys associated with a specific client. Returns paginated results showing all API keys for the client including their status, environment, rate limits, and usage statistics."
           },
           "response": []
         }
-      ]
+      ],
+      "description": "API Key management endpoints for system owners to create, update, and manage client API keys"
     },
     {
-      "name": "03. Audit Logs",
+      "name": "Dashboard - Audit Logs",
       "item": [
         {
           "name": "List Audit Logs",
@@ -431,39 +777,59 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/audit-logs?page=1&per_page=50&action_type=login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "audit-logs"],
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/audit-logs?user_id=1&client_id=1&action_type=api_key.created&entity_type=api_key&date_from=2026-01-01&date_to=2026-01-31&per_page=50",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "audit-logs"],
               "query": [
                 {
-                  "key": "page",
-                  "value": "1"
+                  "key": "user_id",
+                  "value": "1",
+                  "description": "Filter audit logs by user ID (optional)"
                 },
                 {
-                  "key": "per_page",
-                  "value": "50"
+                  "key": "client_id",
+                  "value": "1",
+                  "description": "Filter audit logs by client ID (optional)"
                 },
                 {
                   "key": "action_type",
-                  "value": "login"
+                  "value": "api_key.created",
+                  "description": "Filter by action type (e.g., user.login, api_key.created, api_key.revoked) (optional)"
+                },
+                {
+                  "key": "entity_type",
+                  "value": "api_key",
+                  "description": "Filter by entity type (e.g., user, api_key, client) (optional)"
+                },
+                {
+                  "key": "entity_id",
+                  "value": "",
+                  "description": "Filter by specific entity ID (optional)",
+                  "disabled": true
                 },
                 {
                   "key": "date_from",
                   "value": "2026-01-01",
-                  "disabled": true
+                  "description": "Filter logs from this date (YYYY-MM-DD format) (optional)"
                 },
                 {
                   "key": "date_to",
                   "value": "2026-01-31",
-                  "disabled": true
+                  "description": "Filter logs until this date (YYYY-MM-DD format) (optional)"
+                },
+                {
+                  "key": "per_page",
+                  "value": "50",
+                  "description": "Number of results per page. Default is 50 (optional)"
                 }
               ]
-            }
+            },
+            "description": "Retrieve paginated list of audit logs with comprehensive filtering options. Audit logs track all important system activities including user actions, API key changes, and security events. Essential for compliance monitoring and security auditing."
           },
           "response": []
         },
@@ -473,45 +839,169 @@
             "method": "GET",
             "header": [
               {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/{{apiVersion}}/audit-logs/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "{{apiVersion}}", "audit-logs", ":id"],
+              "raw": "{{base_url}}/api/{{api_version}}/dashboard/audit-logs/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "dashboard", "audit-logs", ":id"],
               "variable": [
                 {
                   "key": "id",
-                  "value": "1"
+                  "value": "1",
+                  "description": "Audit Log ID to retrieve"
                 }
               ]
-            }
+            },
+            "description": "Retrieve detailed information about a specific audit log entry including full action details, user information, client information, IP address, user agent, timestamp, and any relevant before/after data changes."
           },
           "response": []
         }
-      ]
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
+      ],
+      "description": "Audit log endpoints for system owners to monitor and review system activities"
     },
     {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
+      "name": "API Client - Authentication",
+      "item": [
+        {
+          "name": "Login with API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "api_key",
+                  "value": "pk_prod_jdp_1234567890abcdef",
+                  "type": "text",
+                  "description": "Public API key assigned to the client. This key identifies which client is making the request and must be active."
+                },
+                {
+                  "key": "api_secret",
+                  "value": "sk_prod_jdp_secretkey1234567890abcdef",
+                  "type": "text",
+                  "description": "Secret API key for authentication. This must match the stored secret for the provided API key. Keep this confidential."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "login"]
+            },
+            "description": "Authenticate API client using API key and secret credentials. This is the primary authentication method for API integrations. Returns client information, access token, token type, and expiry time. Note: No refresh token is provided for API client authentication as it is stateless."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Save API client token to environment",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    ",
+                  "    if (response.response_code === '0000' && response.data) {",
+                  "        // Save API client access token",
+                  "        pm.environment.set('api_client_token', response.data.access_token);",
+                  "        ",
+                  "        // Save client info",
+                  "        pm.environment.set('client_id', response.data.client.id);",
+                  "        pm.environment.set('client_code', response.data.client.code);",
+                  "        pm.environment.set('client_name', response.data.client.name);",
+                  "        ",
+                  "        console.log('API Client Login successful');",
+                  "        console.log('Client: ' + response.data.client.name);",
+                  "        console.log('Access Token: ' + response.data.access_token.substring(0, 20) + '...');",
+                  "    }",
+                  "} else {",
+                  "    console.log('API Client login failed with status code: ' + pm.response.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "auth": {
+            "type": "noauth"
+          }
+        },
+        {
+          "name": "Get API Client Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "me"]
+            },
+            "description": "Retrieve authenticated API client profile information including client details (code, name, business type, KYB status) and rate limit information (per minute, per hour, total requests, last used at). Useful for monitoring API usage and verifying client identity."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout API Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": []
+            },
+            "url": {
+              "raw": "{{base_url}}/api/{{api_version}}/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "{{api_version}}", "logout"]
+            },
+            "description": "Logout the current API client session by revoking the access token. The token will be immediately invalidated and cannot be used for subsequent requests. API clients must re-authenticate to obtain a new token."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Clear API client token after logout",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset('api_client_token');",
+                  "    console.log('API Client logged out successfully');",
+                  "    console.log('API client token cleared from environment');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "API client authentication endpoints for external integrations using API key and secret"
     }
   ]
 }

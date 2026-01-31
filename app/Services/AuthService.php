@@ -109,7 +109,6 @@ class AuthService implements AuthServiceInterface
     {
         $user = $token->tokenable ?? $token->user;
 
-        // Revoke the token instead of deleting it
         $token->revoke();
 
         if ($user) {
@@ -123,7 +122,6 @@ class AuthService implements AuthServiceInterface
     {
         $this->auditService->logLogout($user);
 
-        // Revoke all user tokens
         foreach ($user->tokens as $token) {
             $token->revoke();
         }
@@ -161,8 +159,6 @@ class AuthService implements AuthServiceInterface
             throw new \RuntimeException("OAuth client '{$clientName}' not found");
         }
 
-        // Get plain text secret from config for password grant authentication
-        // The database stores hashed secret, but OAuth requires plain text
         $plainSecret = $clientType === self::DASHBOARD_CLIENT
             ? config('passport.dashboard_client.secret')
             : config('passport.api_server_client.secret');
@@ -171,7 +167,6 @@ class AuthService implements AuthServiceInterface
             throw new \RuntimeException("OAuth client '{$clientName}' secret not configured in config/passport.php");
         }
 
-        // Override the hashed secret from database with plain text from config
         $client->secret = $plainSecret;
 
         return $client;
@@ -179,17 +174,14 @@ class AuthService implements AuthServiceInterface
 
     private function issuePasswordGrantToken(User $user, \Laravel\Passport\Client $client, string $password): array
     {
-        // Use Passport's Personal Access Token
         $expiresIn = (int) config('passport.access_token_ttl', 60) * 60;
         $expiresAt = now()->addSeconds($expiresIn);
 
-        // Create token using Passport
         $tokenName = 'Password Grant Token';
         $token = $user->createToken($tokenName, [], $expiresAt);
 
         $accessToken = $token->accessToken;
 
-        // Create refresh token if client supports it
         $refreshToken = null;
         $grantTypes = is_string($client->grant_types) ? json_decode($client->grant_types, true) : $client->grant_types;
         if (in_array('refresh_token', $grantTypes ?? [])) {
@@ -221,7 +213,6 @@ class AuthService implements AuthServiceInterface
 
     private function issueRefreshGrantToken(string $refreshToken, \Laravel\Passport\Client $client): array
     {
-        // Find the refresh token
         $refreshTokenModel = DB::table('oauth_refresh_tokens')
             ->where('id', $refreshToken)
             ->where('revoked', false)
@@ -231,12 +222,10 @@ class AuthService implements AuthServiceInterface
             throw new AuthenticationException(__('auth.invalid_refresh_token'));
         }
 
-        // Check if refresh token expired
         if ($refreshTokenModel->expires_at && now()->greaterThan($refreshTokenModel->expires_at)) {
             throw new AuthenticationException(__('auth.refresh_token_expired'));
         }
 
-        // Get the old access token to find the user
         $oldAccessToken = DB::table('oauth_access_tokens')
             ->where('id', $refreshTokenModel->access_token_id)
             ->first();
@@ -251,7 +240,6 @@ class AuthService implements AuthServiceInterface
             throw new AuthenticationException(__('auth.user_not_found'));
         }
 
-        // Revoke old tokens
         DB::table('oauth_access_tokens')
             ->where('id', $refreshTokenModel->access_token_id)
             ->update(['revoked' => true]);
@@ -260,8 +248,7 @@ class AuthService implements AuthServiceInterface
             ->where('id', $refreshToken)
             ->update(['revoked' => true]);
 
-        // Generate new tokens
-        $password = $user->password; // Not actually used, just for interface compatibility
+        $password = $user->password; 
         return $this->issuePasswordGrantToken($user, $client, $password);
     }
 
@@ -269,15 +256,6 @@ class AuthService implements AuthServiceInterface
     {
         if ($apiKey->status !== ApiKeyStatus::ACTIVE) {
             throw new AuthenticationException(__('auth.api_key_inactive'));
-        }
-
-        if ($apiKey->ip_whitelist) {
-            $requestIp = request()->ip();
-            $whitelist = is_array($apiKey->ip_whitelist) ? $apiKey->ip_whitelist : json_decode($apiKey->ip_whitelist, true);
-
-            if (!in_array($requestIp, $whitelist) && !empty($whitelist)) {
-                throw new AuthenticationException(__('auth.ip_not_allowed'));
-            }
         }
     }
 
@@ -323,18 +301,54 @@ class AuthService implements AuthServiceInterface
 
     private function transformUser(User $user): array
     {
-        return [
+        $entityType = $this->getUserEntityType($user);
+
+        $data = [
             'id' => $user->id,
             'username' => $user->username,
             'email' => $user->email,
             'full_name' => $user->full_name,
             'role' => $user->role_name,
             'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
-            'entity_type' => $this->getUserEntityType($user),
-            'client_id' => $user->client_id,
-            'head_office_id' => $user->head_office_id,
-            'merchant_id' => $user->merchant_id,
+            'entity_type' => $entityType,
         ];
+
+        if ($entityType === 'client' && $user->client) {
+            $data['client'] = [
+                'id' => $user->client->id,
+                'code' => $user->client->client_code,
+                'name' => $user->client->client_name,
+            ];
+        } elseif ($entityType === 'head_office' && $user->headOffice) {
+            $data['head_office'] = [
+                'id' => $user->headOffice->id,
+                'code' => $user->headOffice->code,
+                'name' => $user->headOffice->name,
+            ];
+            $data['client'] = [
+                'id' => $user->headOffice->client->id,
+                'code' => $user->headOffice->client->client_code,
+                'name' => $user->headOffice->client->client_name,
+            ];
+        } elseif ($entityType === 'merchant' && $user->merchant) {
+            $data['merchant'] = [
+                'id' => $user->merchant->id,
+                'code' => $user->merchant->merchant_code,
+                'name' => $user->merchant->merchant_name,
+            ];
+            $data['head_office'] = [
+                'id' => $user->merchant->headOffice->id,
+                'code' => $user->merchant->headOffice->code,
+                'name' => $user->merchant->headOffice->name,
+            ];
+            $data['client'] = [
+                'id' => $user->merchant->client->id,
+                'code' => $user->merchant->client->client_code,
+                'name' => $user->merchant->client->client_name,
+            ];
+        }
+
+        return $data;
     }
 
     private function getUserEntityType(User $user): ?string

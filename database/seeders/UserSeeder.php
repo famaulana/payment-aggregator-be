@@ -13,127 +13,178 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        $client = Client::where('client_code', 'JDP001')->first();
+
+        if (!$client) {
+            return;
+        }
+
+        // System Owner - Has client_id (JDP as partner)
         $systemOwner = User::updateOrCreate(
-            ['email' => 'system-owner@pg-lit.test'],
+            ['email' => 'system-owner@jdp.co.id'],
             [
                 'username' => 'system_owner',
                 'full_name' => 'System Owner Admin',
                 'password' => Hash::make('password123'),
                 'status' => 'active',
                 'email_verified_at' => now(),
-                'client_id' => null,
+                'client_id' => $client->id,
                 'head_office_id' => null,
                 'merchant_id' => null,
             ]
         );
         $systemOwner->assignSingleRole('system_owner');
 
-        $client1 = Client::where('client_code', 'DPI001')->first();
-        if ($client1) {
-            $clientAdmin1 = User::updateOrCreate(
-                ['email' => 'client@pg-lit.test'],
-                [
-                    'username' => 'client_dpi',
-                    'full_name' => 'Admin PT Digital Payment Indonesia',
-                    'password' => Hash::make('password123'),
-                    'status' => 'active',
-                    'email_verified_at' => now(),
-                    'client_id' => $client1->id,
-                    'head_office_id' => null,
-                    'merchant_id' => null,
-                ]
-            );
-            $clientAdmin1->assignSingleRole('client');
-        }
+        // Client Admin - Has client_id only
+        $clientAdmin = User::updateOrCreate(
+            ['email' => 'client@jdp.co.id'],
+            [
+                'username' => 'client_jdp',
+                'full_name' => 'Admin PT Jago Digital Payment',
+                'password' => Hash::make('password123'),
+                'status' => 'active',
+                'email_verified_at' => now(),
+                'client_id' => $client->id,
+                'head_office_id' => null,
+                'merchant_id' => null,
+                'created_by' => $systemOwner->id ?? null,
+            ]
+        );
+        $clientAdmin->assignSingleRole('client');
 
-        $client2 = Client::where('client_code', 'RET002')->first();
-        if ($client2) {
-            $clientAdmin2 = User::updateOrCreate(
-                ['email' => 'client2@pg-lit.test'],
-                [
-                    'username' => 'client_retail',
-                    'full_name' => 'Admin PT Retail Nusantara',
-                    'password' => Hash::make('password123'),
-                    'status' => 'active',
-                    'email_verified_at' => now(),
-                    'client_id' => $client2->id,
-                    'head_office_id' => null,
-                    'merchant_id' => null,
-                ]
-            );
-            $clientAdmin2->assignSingleRole('client');
-        }
-
-        $headOffice1 = HeadOffice::where('code', 'HO-JKT')->first();
-        if ($headOffice1) {
-            $hoAdmin1 = User::updateOrCreate(
-                ['email' => 'ho@pg-lit.test'],
+        // Head Office Admins - Has client_id + head_office_id
+        $hoJkt = HeadOffice::where('client_id', $client->id)->where('code', 'HO-JKT')->first();
+        if ($hoJkt) {
+            $hoAdminJkt = User::updateOrCreate(
+                ['email' => 'ho-jakarta@jdp.co.id'],
                 [
                     'username' => 'ho_jakarta',
                     'full_name' => 'Admin Head Office Jakarta',
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'client_id' => $headOffice1->client_id,
-                    'head_office_id' => $headOffice1->id,
+                    'client_id' => $client->id,
+                    'head_office_id' => $hoJkt->id,
                     'merchant_id' => null,
+                    'created_by' => $systemOwner->id ?? null,
                 ]
             );
-            $hoAdmin1->assignSingleRole('head_office');
+            $hoAdminJkt->assignSingleRole('head_office');
         }
 
-        $headOffice2 = HeadOffice::where('code', 'HO-SBY')->first();
-        if ($headOffice2) {
-            $hoAdmin2 = User::updateOrCreate(
-                ['email' => 'ho-surabaya@pg-lit.test'],
+        $hoSby = HeadOffice::where('client_id', $client->id)->where('code', 'HO-SBY')->first();
+        if ($hoSby) {
+            $hoAdminSby = User::updateOrCreate(
+                ['email' => 'ho-surabaya@jdp.co.id'],
                 [
                     'username' => 'ho_surabaya',
                     'full_name' => 'Admin Head Office Surabaya',
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'client_id' => $headOffice2->client_id,
-                    'head_office_id' => $headOffice2->id,
+                    'client_id' => $client->id,
+                    'head_office_id' => $hoSby->id,
                     'merchant_id' => null,
+                    'created_by' => $systemOwner->id ?? null,
                 ]
             );
-            $hoAdmin2->assignSingleRole('head_office');
+            $hoAdminSby->assignSingleRole('head_office');
         }
 
-        $merchant1 = Merchant::where('merchant_code', 'MER-JKT-001')->first();
+        $hoBdg = HeadOffice::where('client_id', $client->id)->where('code', 'HO-BDG')->first();
+        if ($hoBdg) {
+            $hoAdminBdg = User::updateOrCreate(
+                ['email' => 'ho-bandung@jdp.co.id'],
+                [
+                    'username' => 'ho_bandung',
+                    'full_name' => 'Admin Head Office Bandung',
+                    'password' => Hash::make('password123'),
+                    'status' => 'active',
+                    'email_verified_at' => now(),
+                    'client_id' => $client->id,
+                    'head_office_id' => $hoBdg->id,
+                    'merchant_id' => null,
+                    'created_by' => $systemOwner->id ?? null,
+                ]
+            );
+            $hoAdminBdg->assignSingleRole('head_office');
+        }
+
+        // Merchant Admins - Has client_id + head_office_id + merchant_id
+        $merchant1 = Merchant::where('client_id', $client->id)->where('merchant_code', 'MER-JKT-001')->first();
         if ($merchant1) {
             $merchantAdmin1 = User::updateOrCreate(
-                ['email' => 'merchant@pg-lit.test'],
+                ['email' => 'merchant-001@jdp.co.id'],
                 [
                     'username' => 'merchant_001',
                     'full_name' => 'Admin Toko Maju Jaya',
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'client_id' => $merchant1->client_id,
+                    'client_id' => $client->id,
                     'head_office_id' => $merchant1->head_office_id,
                     'merchant_id' => $merchant1->id,
+                    'created_by' => $systemOwner->id ?? null,
                 ]
             );
             $merchantAdmin1->assignSingleRole('merchant');
         }
 
-        $merchant2 = Merchant::where('merchant_code', 'MER-JKT-002')->first();
+        $merchant2 = Merchant::where('client_id', $client->id)->where('merchant_code', 'MER-JKT-002')->first();
         if ($merchant2) {
             $merchantAdmin2 = User::updateOrCreate(
-                ['email' => 'merchant2@pg-lit.test'],
+                ['email' => 'merchant-002@jdp.co.id'],
                 [
                     'username' => 'merchant_002',
                     'full_name' => 'Admin Warung Sejahtera',
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'client_id' => $merchant2->client_id,
+                    'client_id' => $client->id,
                     'head_office_id' => $merchant2->head_office_id,
                     'merchant_id' => $merchant2->id,
+                    'created_by' => $systemOwner->id ?? null,
                 ]
             );
             $merchantAdmin2->assignSingleRole('merchant');
+        }
+
+        $merchant3 = Merchant::where('client_id', $client->id)->where('merchant_code', 'MER-SBY-001')->first();
+        if ($merchant3) {
+            $merchantAdmin3 = User::updateOrCreate(
+                ['email' => 'merchant-003@jdp.co.id'],
+                [
+                    'username' => 'merchant_003',
+                    'full_name' => 'Admin Toko Berkah Surabaya',
+                    'password' => Hash::make('password123'),
+                    'status' => 'active',
+                    'email_verified_at' => now(),
+                    'client_id' => $client->id,
+                    'head_office_id' => $merchant3->head_office_id,
+                    'merchant_id' => $merchant3->id,
+                    'created_by' => $systemOwner->id ?? null,
+                ]
+            );
+            $merchantAdmin3->assignSingleRole('merchant');
+        }
+
+        $merchant4 = Merchant::where('client_id', $client->id)->where('merchant_code', 'MER-BDG-001')->first();
+        if ($merchant4) {
+            $merchantAdmin4 = User::updateOrCreate(
+                ['email' => 'merchant-004@jdp.co.id'],
+                [
+                    'username' => 'merchant_004',
+                    'full_name' => 'Admin Toko Jaya Bandung',
+                    'password' => Hash::make('password123'),
+                    'status' => 'active',
+                    'email_verified_at' => now(),
+                    'client_id' => $client->id,
+                    'head_office_id' => $merchant4->head_office_id,
+                    'merchant_id' => $merchant4->id,
+                    'created_by' => $systemOwner->id ?? null,
+                ]
+            );
+            $merchantAdmin4->assignSingleRole('merchant');
         }
     }
 }

@@ -87,3 +87,5 @@ Homestead.yaml
 *.bak
 *.old
 *.tmp
+scripts
+postman

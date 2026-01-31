@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Dashboard;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateApiKeyRequest;
 use App\Http\Requests\UpdateApiKeyRequest;
 use App\Services\ApiKeyManagementService;
@@ -9,7 +10,7 @@ use App\Enums\ResponseCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class ApiKeyManagementController extends Controller
+class ApiKeyController extends Controller
 {
     public function __construct(
         private ApiKeyManagementService $apiKeyService

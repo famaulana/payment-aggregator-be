@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle.api' => \App\Http\Middleware\RateLimitMiddleware::class,
             'log.request' => \App\Http\Middleware\RequestLoggingMiddleware::class,
             'verify.signature' => \App\Http\Middleware\SignatureValidationMiddleware::class,
+            'validate.ip' => \App\Http\Middleware\ValidateApiKeyIpWhitelist::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,

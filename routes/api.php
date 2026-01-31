@@ -1,61 +1,50 @@
 <?php
 
-use App\Http\Controllers\ApiAuthController;
-use App\Http\Controllers\ApiKeyManagementController;
-use App\Http\Controllers\AuditLogController;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Dashboard\AuthController as DashboardAuthController;
+use App\Http\Controllers\Dashboard\ApiKeyController;
+use App\Http\Controllers\Dashboard\AuditLogController;
+use App\Http\Controllers\Api\AuthController as ApiAuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Passport OAuth Routes - Manual registration for Laravel 12
 Route::prefix('oauth')->group(function () {
     Route::post('/token', '\Laravel\Passport\Http\Controllers\AccessTokenController@issueToken');
 });
 
 Route::prefix('v1')->group(function () {
-    // Public routes - Auth
-    Route::prefix('auth')->group(function () {
-        // FE Dashboard Authentication
-        Route::post('/login', [AuthController::class, 'login']);
-        Route::post('/refresh', [AuthController::class, 'refresh']);
 
-        // API Server Authentication (API Key based)
-        Route::post('/api/login', [ApiAuthController::class, 'login']);
+    Route::prefix('dashboard')->group(function () {
+        Route::post('/login', [DashboardAuthController::class, 'login']);
+        Route::post('/refresh', [DashboardAuthController::class, 'refresh']);
+
+        Route::middleware('auth:api')->group(function () {
+            Route::post('/logout', [DashboardAuthController::class, 'logout']);
+            Route::post('/logout-all', [DashboardAuthController::class, 'logoutAll']);
+            Route::get('/me', [DashboardAuthController::class, 'me']);
+            Route::get('/tokens', [DashboardAuthController::class, 'tokens']);
+
+            Route::middleware(['role:system_owner,system_owner_admin'])->prefix('api-keys')->group(function () {
+                Route::get('/', [ApiKeyController::class, 'index']);
+                Route::post('/', [ApiKeyController::class, 'store']);
+                Route::get('/{id}', [ApiKeyController::class, 'show']);
+                Route::put('/{id}', [ApiKeyController::class, 'update']);
+                Route::post('/{id}/revoke', [ApiKeyController::class, 'revoke']);
+                Route::post('/{id}/regenerate-secret', [ApiKeyController::class, 'regenerateSecret']);
+                Route::post('/{id}/toggle-status', [ApiKeyController::class, 'toggleStatus']);
+                Route::get('/client/{clientId}', [ApiKeyController::class, 'getByClient']);
+            });
+
+            Route::middleware(['role:system_owner,system_owner_admin'])->prefix('audit-logs')->group(function () {
+                Route::get('/', [AuditLogController::class, 'index']);
+                Route::get('/{id}', [AuditLogController::class, 'show']);
+            });
+        });
     });
 
-    // Protected routes - require authentication
+    Route::post('/login', [ApiAuthController::class, 'login'])->middleware('validate.ip');
     Route::middleware('auth:api')->group(function () {
-        // FE Dashboard Auth
-        Route::prefix('auth')->group(function () {
-            Route::post('/logout', [AuthController::class, 'logout']);
-            Route::post('/logout-all', [AuthController::class, 'logoutAll']);
-            Route::get('/me', [AuthController::class, 'me']);
-            Route::get('/tokens', [AuthController::class, 'tokens']);
-        });
-
-        // API Server Auth
-        Route::prefix('auth/api')->group(function () {
-            Route::post('/logout', [ApiAuthController::class, 'logout']);
-            Route::get('/me', [ApiAuthController::class, 'me']);
-        });
-
-        // API Key Management (System Owner only)
-        Route::middleware(['role:system_owner,system_owner_admin'])->prefix('api-keys')->group(function () {
-            Route::get('/', [ApiKeyManagementController::class, 'index']);
-            Route::post('/', [ApiKeyManagementController::class, 'store']);
-            Route::get('/{id}', [ApiKeyManagementController::class, 'show']);
-            Route::put('/{id}', [ApiKeyManagementController::class, 'update']);
-            Route::post('/{id}/revoke', [ApiKeyManagementController::class, 'revoke']);
-            Route::post('/{id}/regenerate-secret', [ApiKeyManagementController::class, 'regenerateSecret']);
-            Route::post('/{id}/toggle-status', [ApiKeyManagementController::class, 'toggleStatus']);
-            Route::get('/client/{clientId}', [ApiKeyManagementController::class, 'getByClient']);
-        });
-
-        // Audit Trails (System Owner only)
-        Route::middleware(['role:system_owner,system_owner_admin'])->prefix('audit-logs')->group(function () {
-            Route::get('/', [AuditLogController::class, 'index']);
-            Route::get('/{id}', [AuditLogController::class, 'show']);
-        });
+        Route::post('/logout', [ApiAuthController::class, 'logout']);
+        Route::get('/me', [ApiAuthController::class, 'me']);
     });
 });
 

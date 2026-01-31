@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AuditActionType;
 use App\Models\AuditTrail;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -9,19 +10,6 @@ use Illuminate\Support\Facades\Auth;
 
 class AuditTrailService
 {
-    public const ACTION_LOGIN = 'login';
-    public const ACTION_LOGOUT = 'logout';
-    public const ACTION_LOGIN_FAILED = 'login_failed';
-    public const ACTION_API_KEY_LOGIN = 'api_key_login';
-    public const ACTION_API_KEY_LOGOUT = 'api_key_logout';
-    public const ACTION_API_KEY_CREATE = 'api_key_create';
-    public const ACTION_API_KEY_UPDATE = 'api_key_update';
-    public const ACTION_API_KEY_DELETE = 'api_key_delete';
-    public const ACTION_API_KEY_REVOKE = 'api_key_revoke';
-    public const ACTION_TOKEN_REFRESH = 'token_refresh';
-    public const ACTION_PASSWORD_CHANGE = 'password_change';
-    public const ACTION_PROFILE_UPDATE = 'profile_update';
-
     public function log(
         string $actionType,
         ?string $entityType = null,
@@ -60,7 +48,7 @@ class AuditTrailService
     public function logLoginSuccess(User $user): AuditTrail
     {
         return $this->log(
-            actionType: self::ACTION_LOGIN,
+            actionType: AuditActionType::LOGIN->value,
             entityType: 'user',
             entityId: $user->id,
             newValues: [
@@ -74,7 +62,7 @@ class AuditTrailService
     public function logLoginFailed(string $email, ?string $reason = null): AuditTrail
     {
         return $this->log(
-            actionType: self::ACTION_LOGIN_FAILED,
+            actionType: AuditActionType::LOGIN_FAILED->value,
             entityType: 'user',
             newValues: [
                 'email' => $email,
@@ -88,7 +76,7 @@ class AuditTrailService
     public function logLogout(User $user): AuditTrail
     {
         return $this->log(
-            actionType: self::ACTION_LOGOUT,
+            actionType: AuditActionType::LOGOUT->value,
             entityType: 'user',
             entityId: $user->id,
             notes: 'User logged out'
@@ -98,7 +86,7 @@ class AuditTrailService
     public function logApiKeyLogin(int $apiKeyId, string $clientCode): AuditTrail
     {
         return $this->log(
-            actionType: self::ACTION_API_KEY_LOGIN,
+            actionType: AuditActionType::API_KEY_LOGIN->value,
             entityType: 'api_key',
             entityId: $apiKeyId,
             newValues: [
@@ -112,7 +100,7 @@ class AuditTrailService
     public function logApiKeyCreate(int $apiKeyId, array $keyData): AuditTrail
     {
         return $this->log(
-            actionType: self::ACTION_API_KEY_CREATE,
+            actionType: AuditActionType::API_KEY_CREATE->value,
             entityType: 'api_key',
             entityId: $apiKeyId,
             newValues: $keyData,
@@ -123,7 +111,7 @@ class AuditTrailService
     public function logApiKeyRevoke(int $apiKeyId, ?string $reason = null): AuditTrail
     {
         return $this->log(
-            actionType: self::ACTION_API_KEY_REVOKE,
+            actionType: AuditActionType::API_KEY_REVOKE->value,
             entityType: 'api_key',
             entityId: $apiKeyId,
             newValues: [
@@ -137,7 +125,7 @@ class AuditTrailService
     public function logTokenRefresh(User $user): AuditTrail
     {
         return $this->log(
-            actionType: self::ACTION_TOKEN_REFRESH,
+            actionType: AuditActionType::TOKEN_REFRESH->value,
             entityType: 'user',
             entityId: $user->id,
             newValues: [
