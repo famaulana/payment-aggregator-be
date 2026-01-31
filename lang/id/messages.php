@@ -66,6 +66,11 @@ return [
     'api_key_revoked' => 'API key dicabut',
     'invalid_api_key' => 'API key tidak valid',
     'api_key_expired' => 'API key telah kadaluarsa',
+    'api_key_required' => 'API key wajib diisi',
+    'invalid_api_secret' => 'API secret tidak valid',
+    'ip_not_allowed' => 'Alamat IP tidak diizinkan',
+    'invalid_signature' => 'Signature tidak valid',
+    'request_expired' => 'Permintaan telah kadaluarsa',
 
     // Validasi
     'validation_error' => 'Validasi gagal',
@@ -92,6 +97,7 @@ return [
     'too_many_requests' => 'Terlalu banyak permintaan',
     'service_unavailable' => 'Layanan tidak tersedia',
     'method_not_allowed' => 'Metode tidak diizinkan',
+    'invalid_timestamp' => 'Timestamp tidak valid',
     'active' => 'Aktif',
     'inactive' => 'Tidak Aktif',
     'pending' => 'Tertunda',

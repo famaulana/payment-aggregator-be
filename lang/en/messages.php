@@ -66,6 +66,11 @@ return [
     'api_key_revoked' => 'API key revoked',
     'invalid_api_key' => 'Invalid API key',
     'api_key_expired' => 'API key has expired',
+    'api_key_required' => 'API key is required',
+    'invalid_api_secret' => 'Invalid API secret',
+    'ip_not_allowed' => 'IP address not allowed',
+    'invalid_signature' => 'Invalid signature',
+    'request_expired' => 'Request has expired',
 
     // Validation
     'validation_error' => 'Validation failed',
@@ -92,6 +97,7 @@ return [
     'too_many_requests' => 'Too many requests',
     'service_unavailable' => 'Service unavailable',
     'method_not_allowed' => 'Method not allowed',
+    'invalid_timestamp' => 'Invalid timestamp',
     'active' => 'Active',
     'inactive' => 'Inactive',
     'pending' => 'Pending',

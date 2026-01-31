@@ -26,6 +26,15 @@ enum ResponseCode: string
     case TOKEN_INVALID = '2003';
     case FORBIDDEN = '2004';
     case SESSION_EXPIRED = '2005';
+    case INVALID_API_KEY = '2006';
+    case INVALID_API_SECRET = '2007';
+    case API_KEY_REVOKED = '2008';
+    case API_KEY_EXPIRED = '2009';
+    case IP_NOT_ALLOWED = '2010';
+    case INVALID_SIGNATURE = '2011';
+    case REQUEST_EXPIRED = '2012';
+    case INVALID_TIMESTAMP = '2013';
+    case API_KEY_REQUIRED = '2014';
 
     // Business Logic Error Codes - 3000-3999
     case USER_NOT_FOUND = '3000';
@@ -85,6 +94,15 @@ enum ResponseCode: string
             self::TOKEN_INVALID => 'messages.token_invalid',
             self::FORBIDDEN => 'messages.forbidden',
             self::SESSION_EXPIRED => 'messages.session_expired',
+            self::INVALID_API_KEY => 'messages.invalid_api_key',
+            self::INVALID_API_SECRET => 'messages.invalid_api_secret',
+            self::API_KEY_REVOKED => 'messages.api_key_revoked',
+            self::API_KEY_EXPIRED => 'messages.api_key_expired',
+            self::IP_NOT_ALLOWED => 'messages.ip_not_allowed',
+            self::INVALID_SIGNATURE => 'messages.invalid_signature',
+            self::REQUEST_EXPIRED => 'messages.request_expired',
+            self::INVALID_TIMESTAMP => 'messages.invalid_timestamp',
+            self::API_KEY_REQUIRED => 'messages.api_key_required',
 
             self::USER_NOT_FOUND => 'messages.user_not_found',
             self::CLIENT_NOT_FOUND => 'messages.client_not_found',
@@ -140,7 +158,10 @@ enum ResponseCode: string
             // Auth Error - 4xx
             self::UNAUTHORIZED, self::AUTHENTICATION_FAILED,
             self::TOKEN_EXPIRED, self::TOKEN_INVALID,
-            self::SESSION_EXPIRED => 401,
+            self::SESSION_EXPIRED, self::INVALID_API_KEY, self::INVALID_API_SECRET,
+            self::API_KEY_REVOKED, self::API_KEY_EXPIRED, self::IP_NOT_ALLOWED,
+            self::INVALID_SIGNATURE, self::REQUEST_EXPIRED, self::INVALID_TIMESTAMP,
+            self::API_KEY_REQUIRED => 401,
             self::FORBIDDEN => 403,
 
             // Business Logic Error - 4xx

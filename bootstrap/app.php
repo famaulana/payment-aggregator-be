@@ -13,6 +13,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(\App\Http\Middleware\SetLocaleFromRequest::class);
+
+        $middleware->alias([
+            'auth.api' => \App\Http\Middleware\ApiKeyMiddleware::class,
+            'throttle.api' => \App\Http\Middleware\RateLimitMiddleware::class,
+            'log.request' => \App\Http\Middleware\RequestLoggingMiddleware::class,
+            'verify.signature' => \App\Http\Middleware\SignatureValidationMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
