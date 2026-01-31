@@ -26,7 +26,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('pg_code', 'idx_pg_code');
-            $table->index('status', 'idx_status');
+            $table->index('status', 'idx_payment_gateways_status');
         });
     }
 

@@ -47,7 +47,6 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable()->comment('Created by System Owner');
 
             $table->index('client_code', 'idx_client_code');
-            $table->index('status', 'idx_status');
             $table->index(['status', 'available_balance'], 'idx_clients_status_balance');
         });
     }

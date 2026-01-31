@@ -35,7 +35,6 @@ return new class extends Migration
             $table->index('action_type', 'idx_action_type');
             $table->index(['entity_type', 'entity_id'], 'idx_entity');
             $table->index('created_at', 'idx_created_at');
-            $table->index('client_id', 'idx_client_id');
         });
     }
 

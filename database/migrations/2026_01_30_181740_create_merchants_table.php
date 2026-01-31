@@ -33,11 +33,8 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
 
             $table->unique(['client_id', 'merchant_code'], 'unique_client_merchant_code');
-            $table->index('client_id', 'idx_client_id');
-            $table->index('head_office_id', 'idx_head_office_id');
             $table->index('merchant_code', 'idx_merchant_code');
-            $table->index('province_id', 'idx_province_id');
-            $table->index('status', 'idx_status');
+            $table->index('status', 'idx_merchants_status');
         });
     }
 

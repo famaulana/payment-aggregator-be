@@ -24,7 +24,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['province_id'], 'idx_province_id');
-            $table->index(['code'], 'idx_code');
         });
     }
 

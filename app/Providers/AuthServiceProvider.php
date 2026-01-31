@@ -2,78 +2,45 @@
 
 namespace App\Providers;
 
-use App\Models\User;
-use App\Policies\RolePolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Gate;
 use Laravel\Passport\Passport;
-use Spatie\Permission\Models\Role;
+use Laravel\Passport\Client;
+use League\OAuth2\Server\Grant\PasswordGrant;
+use League\OAuth2\Server\Grant\RefreshTokenGrant;
 
 class AuthServiceProvider extends ServiceProvider
 {
-    /**
-     * The model to policy mappings for the application.
-     *
-     * @var array<class-string, class-string>
-     */
-    protected $policies = [
-        Role::class => RolePolicy::class,
-    ];
-
-    /**
-     * Register any authentication / authorization services.
-     */
     public function boot(): void
     {
-        $this->registerPolicies();
+        $this->configurePassport();
+        $this->configurePassportTokensCan();
+    }
 
-        Passport::ignoreRoutes();
+    protected function configurePassport(): void
+    {
+        // Default TTL for all clients
+        $accessTokenTTL = config('passport.access_token_ttl', 60);
+        $refreshTokenTTL = config('passport.refresh_token_ttl', 30);
+        $patTokenTTL = config('passport.pat_token_ttl', 90);
+
+        Passport::tokensExpireIn(new \DateInterval('PT'.$accessTokenTTL.'M'));
+        Passport::refreshTokensExpireIn(new \DateInterval('P'.$refreshTokenTTL.'D'));
+        Passport::personalAccessTokensExpireIn(new \DateInterval('P'.$patTokenTTL.'D'));
+
+        // Enable password grant
         Passport::enablePasswordGrant();
+    }
 
-        Passport::tokensExpireIn(
-            now()->addMinutes((int) config('passport.access_token_ttl'))
-        );
-        Passport::refreshTokensExpireIn(
-            now()->addDays((int) config('passport.refresh_token_ttl'))
-        );
-        Passport::personalAccessTokensExpireIn(
-            now()->addDays((int) config('passport.personal_access_token_ttl'))
-        );
-
-        Gate::define('assign-single-role', function (User $user, User $targetUser) {
-            if (!$user->hasRole('system_owner')) {
-                return false;
-            }
-
-            return $targetUser->roles()->count() === 0;
-        });
-
-        Gate::define('change-role', function (User $user, User $targetUser) {
-            if (!$user->hasRole('system_owner')) {
-                return false;
-            }
-
-            return true;
-        });
-
-        Gate::before(function ($user, $ability) {
-            if ($user->hasRole('system_owner')) {
-                return true;
-            }
-        });
-
-        Gate::after(function ($user, $ability, $result, $arguments) {
-            if ($user && $user->roles()->count() > 1) {
-                // Log ke audit trail
-                \Log::warning('User memiliki multiple roles', [
-                    'user_id' => $user->id,
-                    'roles' => $user->roles->pluck('name'),
-                ]);
-
-                $firstRole = $user->roles()->first();
-                $user->roles()->sync([$firstRole->id]);
-            }
-            return $result;
-        });
+    protected function configurePassportTokensCan(): void
+    {
+        Passport::tokensCan([
+            'system-owner' => 'System Owner Access',
+            'client' => 'Client Access',
+            'head-office' => 'Head Office Access',
+            'merchant' => 'Merchant Access',
+            'check-status' => 'Check transaction status',
+            'webhook' => 'Webhook access',
+        ]);
     }
 }
+

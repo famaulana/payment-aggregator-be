@@ -26,8 +26,8 @@ return [
     |
     */
 
-    'private_key' => env('PASSPORT_PRIVATE_KEY', storage_path('oauth/oauth-private.key')),
-    'public_key' => env('PASSPORT_PUBLIC_KEY', storage_path('oauth/oauth-public.key')),
+    'private_key' => env('PASSPORT_PRIVATE_KEY', storage_path('oauth-private.key')),
+    'public_key' => env('PASSPORT_PUBLIC_KEY', storage_path('oauth-public.key')),
 
     /*
     |--------------------------------------------------------------------------
@@ -48,6 +48,16 @@ return [
     'password_client' => [
         'id' => env('PASSPORT_PASSWORD_CLIENT_ID'),
         'secret' => env('PASSPORT_PASSWORD_CLIENT_SECRET'),
+    ],
+
+    'dashboard_client' => [
+        'id' => env('PASSPORT_DASHBOARD_CLIENT_ID'),
+        'secret' => env('PASSPORT_DASHBOARD_CLIENT_SECRET'),
+    ],
+
+    'api_server_client' => [
+        'id' => env('PASSPORT_API_SERVER_CLIENT_ID'),
+        'secret' => env('PASSPORT_API_SERVER_CLIENT_SECRET'),
     ],
 
     'personal_access_client' => [

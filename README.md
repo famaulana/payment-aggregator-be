@@ -1,60 +1,192 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Payment Platform - Complete Auth System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Production-ready authentication and API key management system for payment gateway operations.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Dual Authentication System**
+  - FE Dashboard (User login with refresh token)
+  - API Server (API Key based, no refresh token)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **API Key Management**
+  - Create, update, revoke API keys
+  - IP whitelist support
+  - Configurable rate limiting
+  - Secret regeneration
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Security Features**
+  - Comprehensive audit trail
+  - Rate limiting (Redis/File backend)
+  - IP whitelist validation
+  - Request signing support
+  - Role-based access control
 
-## Learning Laravel
+- **Multi-language Support**
+  - English & Indonesian
+  - Accept-Language header detection
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Tech Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Backend**: Laravel 12, PHP 8.2
+- **Database**: MySQL 8.0
+- **Cache**: Redis (optional)
+- **Authentication**: Laravel Passport (OAuth2)
+- **Authorization**: Spatie Permissions
 
-## Laravel Sponsors
+## Quick Start
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+# Clone repository
+git clone https://github.com/your-org/payment-platform.git
+cd payment-platform
 
-### Premium Partners
+# Install dependencies
+composer install
+npm install
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# Setup environment
+cp .env.example .env
+php artisan key:generate
 
-## Contributing
+# Run setup
+chmod +x setup.sh
+./setup.sh
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# Generate Passport secrets
+php scripts/generate-passport-secrets.php
+```
 
-## Code of Conduct
+## Environment Variables
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```env
+# Application
+APP_NAME="PaymentPlatform"
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://api.pg-lit.com
 
-## Security Vulnerabilities
+# Database
+DB_DATABASE=payment_platform
+DB_USERNAME=payment_user
+DB_PASSWORD=your_secure_password
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Redis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=your_redis_password
+
+# Passport (Generate using scripts/generate-passport-secrets.php)
+PASSPORT_DASHBOARD_CLIENT_ID=
+PASSPORT_DASHBOARD_CLIENT_SECRET=
+PASSPORT_API_SERVER_CLIENT_ID=
+PASSPORT_API_SERVER_CLIENT_SECRET=
+```
+
+## Test Users
+
+| Email | Password | Role |
+|-------|----------|------|
+| system-owner@pg-lit.test | password123 | System Owner |
+| client@pg-lit.test | password123 | Client |
+| ho@pg-lit.test | password123 | Head Office |
+| merchant@pg-lit.test | password123 | Merchant |
+
+## API Endpoints
+
+### Authentication (Public)
+- `POST /api/v1/auth/login` - Dashboard login
+- `POST /api/v1/auth/refresh` - Refresh access token
+- `POST /api/v1/auth/api/login` - API Server login (API Key)
+
+### Authentication (Protected)
+- `POST /api/v1/auth/logout` - Logout current session
+- `POST /api/v1/auth/logout-all` - Logout all sessions
+- `GET /api/v1/auth/me` - Get current user profile
+- `GET /api/v1/auth/tokens` - List active tokens
+
+### API Key Management (System Owner only)
+- `GET /api/v1/api-keys` - List API keys (paginated)
+- `POST /api/v1/api-keys` - Create new API key
+- `GET /api/v1/api-keys/{id}` - Get API key details
+- `PUT /api/v1/api-keys/{id}` - Update API key
+- `POST /api/v1/api-keys/{id}/revoke` - Revoke API key
+- `POST /api/v1/api-keys/{id}/regenerate-secret` - Regenerate secret
+- `POST /api/v1/api-keys/{id}/toggle-status` - Toggle active/inactive
+- `GET /api/v1/api-keys/client/{id}` - Get client's API keys
+
+### Audit Logs (System Owner only)
+- `GET /api/v1/audit-logs` - List audit logs (paginated, filterable)
+- `GET /api/v1/audit-logs/{id}` - Get audit log details
+
+## Postman Collection
+
+Complete Postman collection available in `/postman` directory:
+
+- `Payment_Platform_API.postman_collection.json` - API endpoints
+- `environments/Local.postman_environment.json` - Local environment
+- `environments/Staging.postman_environment.json` - Staging environment
+- `environments/Production.postman_environment.json` - Production environment
+
+Import into Postman and configure environment variables.
+
+## Documentation
+
+- `/docs/API_DOCUMENTATION.md` - Complete API reference
+- `/docs/DEPLOYMENT_GUIDE.md` - Production deployment guide
+
+## Security
+
+- All endpoints require HTTPS in production
+- Bearer token authentication
+- API Secret hashed using bcrypt
+- IP whitelist support per API key
+- Comprehensive audit logging
+- Rate limiting per API key
+
+## Token Configuration
+
+| Client Type | Access Token | Refresh Token | Purpose |
+|-------------|--------------|---------------|---------|
+| Dashboard | 60 minutes | 30 days | FE Web/Mobile Apps |
+| API Server | 60 minutes | None | Server-to-Server |
+
+## Response Format
+
+All API responses follow standard format:
+
+```json
+{
+  "response_code": "0000",
+  "response_message": "Success message",
+  "data": { ... },
+  "meta": { ... }
+}
+```
+
+## Response Codes
+
+| Code | Category |
+|------|----------|
+| 0000-0999 | Success |
+| 1000-1999 | Validation errors |
+| 2000-2999 | Authentication errors |
+| 3000-3999 | Business logic errors |
+| 4000-4999 | Not found errors |
+| 5000-5999 | Server errors |
+
+## Rate Limiting
+
+Default limits per API key:
+- 60 requests per minute
+- 1000 requests per hour
+
+Customizable per API key.
+
+## Support
+
+- Email: support@pg-lit.com
+- Documentation: https://docs.pg-lit.com
+- Status Page: https://status.pg-lit.com
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# payment-aggregator-be
+Proprietary. All rights reserved.

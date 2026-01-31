@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -39,21 +40,6 @@ class User extends Authenticatable
         'updated_at' => 'datetime',
     ];
 
-    public function role()
-    {
-        return $this->roles()->first();
-    }
-
-    public function getRoleNameAttribute(): ?string
-    {
-        return $this->role()?->name;
-    }
-
-    public function getRoleGuardNameAttribute(): ?string
-    {
-        return $this->role()?->guard_name;
-    }
-
     public function assignRole($role, $guard = null): static
     {
         $this->roles()->detach();
@@ -61,13 +47,18 @@ class User extends Authenticatable
         return parent::assignRole($role, $guard);
     }
 
-    public function syncRoles(...$roles): static
+    public function assignSingleRole($role): static
     {
-        if (count($roles) > 1) {
-            $roles = [$roles[0]];
+        if (is_string($role)) {
+            $guard = 'api';
+            $role = \Spatie\Permission\Models\Role::findByName($role, $guard);
         }
 
-        return parent::syncRoles($roles);
+        $this->roles()->sync([$role->id]);
+
+        $this->forgetCachedPermissions();
+
+        return $this;
     }
 
     public function client()
@@ -190,21 +181,124 @@ class User extends Authenticatable
 
     public function isSystemOwner(): bool
     {
-        return $this->hasExactRole('system_owner');
+        return $this->hasExactRole('system_owner')
+            || $this->hasRole('system_owner_admin')
+            || $this->hasRole('system_owner_finance')
+            || $this->hasRole('system_owner_support');
     }
 
     public function isClientUser(): bool
     {
-        return $this->hasExactRole('client');
+        return $this->hasExactRole('client')
+            || $this->hasRole('client_admin')
+            || $this->hasRole('client_finance')
+            || $this->hasRole('client_operations');
     }
 
     public function isHeadOfficeUser(): bool
     {
-        return $this->hasExactRole('head_office');
+        return $this->hasExactRole('head_office')
+            || $this->hasRole('head_office_admin')
+            || $this->hasRole('head_office_supervisor');
     }
 
     public function isMerchantUser(): bool
     {
-        return $this->hasExactRole('merchant');
+        return $this->hasExactRole('merchant')
+            || $this->hasRole('merchant_admin')
+            || $this->hasRole('merchant_cashier');
+    }
+
+    public function getParentRole(): ?Role
+    {
+        $role = $this->role();
+        if (!$role) {
+            return null;
+        }
+
+        $parentRoleName = $role->parent_role;
+        if (!$parentRoleName) {
+            return null;
+        }
+
+        return Role::where('name', $parentRoleName)->first();
+    }
+
+    public function getAllRoles(): \Illuminate\Database\Eloquent\Collection
+    {
+        $roles = collect([$this->role()]);
+
+        $parentRole = $this->getParentRole();
+        while ($parentRole) {
+            $roles->push($parentRole);
+            $parentRoleName = $parentRole->parent_role;
+            $parentRole = $parentRoleName ? Role::where('name', $parentRoleName)->first() : null;
+        }
+
+        return $roles;
+    }
+
+    public function hasPermissionThroughParent(string $permission): bool
+    {
+        if ($this->can($permission)) {
+            return true;
+        }
+
+        $allRoles = $this->getAllRoles();
+        foreach ($allRoles as $role) {
+            if ($role->hasPermissionTo($permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function canAccessEntity($entityType, $entityId): bool
+    {
+        if ($this->isSystemOwner()) {
+            return true;
+        }
+
+        if ($entityType === 'client') {
+            if ($this->isClientUser()) {
+                return $this->client_id === $entityId;
+            }
+            if ($this->isHeadOfficeUser() || $this->isMerchantUser()) {
+                return $this->client_id === $entityId;
+            }
+        }
+
+        if ($entityType === 'head_office') {
+            if ($this->isClientUser()) {
+                return \App\Models\HeadOffice::where('client_id', $this->client_id)
+                    ->where('id', $entityId)
+                    ->exists();
+            }
+            if ($this->isHeadOfficeUser()) {
+                return $this->head_office_id === $entityId;
+            }
+            if ($this->isMerchantUser()) {
+                return $this->head_office_id === $entityId;
+            }
+        }
+
+        if ($entityType === 'merchant') {
+            if ($this->isClientUser()) {
+                return \App\Models\Merchant::where('client_id', $this->client_id)
+                    ->where('id', $entityId)
+                    ->exists();
+            }
+            if ($this->isHeadOfficeUser()) {
+                return \App\Models\Merchant::where('head_office_id', $this->head_office_id)
+                    ->where('id', $entityId)
+                    ->exists();
+            }
+            if ($this->isMerchantUser()) {
+                return $this->merchant_id === $entityId;
+            }
+        }
+
+        return false;
     }
 }

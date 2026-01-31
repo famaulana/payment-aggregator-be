@@ -21,7 +21,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('city_id', 'idx_city_id');
-            $table->index('code', 'idx_code');
         });
     }
 

@@ -22,7 +22,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('district_id', 'idx_district_id');
-            $table->index('code', 'idx_code');
             $table->index('postal_code', 'idx_postal_code');
         });
     }

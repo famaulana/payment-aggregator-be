@@ -35,8 +35,7 @@ return new class extends Migration
 
             $table->unique('api_key', 'api_key');
             $table->index('api_key_hashed', 'idx_api_key_hashed');
-            $table->index('client_id', 'idx_client_id');
-            $table->index('status', 'idx_status');
+            $table->index('status', 'idx_api_keys_status');
         });
     }
 

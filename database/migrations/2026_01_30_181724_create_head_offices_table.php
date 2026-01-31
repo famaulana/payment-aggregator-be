@@ -30,9 +30,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['client_id', 'code'], 'unique_client_code');
-            $table->index('client_id', 'idx_client_id');
-            $table->index('province_id', 'idx_province_id');
-            $table->index('status', 'idx_status');
+            $table->index('status', 'idx_head_offices_status');
         });
     }
 

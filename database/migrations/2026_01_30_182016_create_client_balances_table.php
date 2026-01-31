@@ -31,7 +31,6 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null')->comment('System Owner user ID for adjustments');
             $table->timestamps();
 
-            $table->index('client_id', 'idx_client_id');
             $table->index('transaction_type', 'idx_transaction_type');
             $table->index('created_at', 'idx_created_at');
             $table->index(['reference_type', 'reference_id'], 'idx_reference');

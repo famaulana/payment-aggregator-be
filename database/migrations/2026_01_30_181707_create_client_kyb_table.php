@@ -60,7 +60,6 @@ return new class extends Migration
             $table->json('metadata')->nullable()->comment('Additional flexible data');
             $table->timestamps();
 
-            $table->index('client_id', 'idx_client_id');
             $table->index('business_type', 'idx_business_type');
             $table->index('npwp', 'idx_npwp');
             $table->index('nib', 'idx_nib');

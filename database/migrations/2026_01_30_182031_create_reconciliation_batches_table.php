@@ -31,7 +31,7 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
 
             $table->index('batch_code', 'idx_batch_code');
-            $table->index('status', 'idx_status');
+            $table->index('status', 'idx_reconciliation_batches_status');
             $table->index(['period_start_date', 'period_end_date'], 'idx_period');
         });
     }

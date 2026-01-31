@@ -42,9 +42,8 @@ return new class extends Migration
             $table->text('payout_notes')->nullable();
             $table->timestamps();
 
-            $table->index('client_id', 'idx_client_id');
             $table->index('batch_code', 'idx_batch_code');
-            $table->index('status', 'idx_status');
+            $table->index('status', 'idx_settlement_batches_status');
             $table->index('settlement_date', 'idx_settlement_date');
             $table->index(['period_start_date', 'period_end_date'], 'idx_period');
             $table->index(['client_id', 'status'], 'idx_settlement_batches_client_status');

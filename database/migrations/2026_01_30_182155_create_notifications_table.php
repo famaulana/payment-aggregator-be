@@ -32,7 +32,7 @@ return new class extends Migration
 
             $table->index('user_id', 'idx_user_id');
             $table->index('notification_type', 'idx_notification_type');
-            $table->index('status', 'idx_status');
+            $table->index('status', 'idx_notifications_status');
             $table->index('is_read', 'idx_is_read');
             $table->index('created_at', 'idx_created_at');
             $table->index(['user_id', 'status', 'created_at'], 'idx_notifications_user_status');

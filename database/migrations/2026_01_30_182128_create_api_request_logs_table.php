@@ -28,7 +28,6 @@ return new class extends Migration
             $table->text('user_agent')->nullable();
             $table->timestamps();
 
-            $table->index('client_id', 'idx_client_id');
             $table->index('api_key_id', 'idx_api_key_id');
             $table->index('endpoint', 'idx_endpoint');
             $table->index('response_status', 'idx_response_status');

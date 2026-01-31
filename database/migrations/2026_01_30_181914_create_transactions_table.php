@@ -49,9 +49,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('transaction_id', 'idx_transaction_id');
-            $table->index('client_id', 'idx_client_id');
             $table->index('merchant_id', 'idx_merchant_id');
-            $table->index('status', 'idx_status');
+            $table->index('status', 'idx_transactions_status');
             $table->index('settlement_status', 'idx_settlement_status');
             $table->index('paid_at', 'idx_paid_at');
             $table->index('created_at', 'idx_created_at');
