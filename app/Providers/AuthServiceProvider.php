@@ -23,9 +23,9 @@ class AuthServiceProvider extends ServiceProvider
         $refreshTokenTTL = config('passport.refresh_token_ttl', 30);
         $patTokenTTL = config('passport.pat_token_ttl', 90);
 
-        Passport::tokensExpireIn(new \DateInterval('PT'.$accessTokenTTL.'M'));
-        Passport::refreshTokensExpireIn(new \DateInterval('P'.$refreshTokenTTL.'D'));
-        Passport::personalAccessTokensExpireIn(new \DateInterval('P'.$patTokenTTL.'D'));
+        Passport::tokensExpireIn(new \DateInterval('PT' . $accessTokenTTL . 'M'));
+        Passport::refreshTokensExpireIn(new \DateInterval('P' . $refreshTokenTTL . 'D'));
+        Passport::personalAccessTokensExpireIn(new \DateInterval('P' . $patTokenTTL . 'D'));
 
         // Enable password grant
         Passport::enablePasswordGrant();
@@ -43,4 +43,3 @@ class AuthServiceProvider extends ServiceProvider
         ]);
     }
 }
-

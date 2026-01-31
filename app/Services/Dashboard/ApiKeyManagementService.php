@@ -208,7 +208,7 @@ class ApiKeyManagementService
 
         $apiKey->update(['status' => $newStatus]);
 
-        app(\App\Services\AuditTrailService::class)->log(
+        app(\App\Services\Shared\AuditTrailService::class)->log(
             actionType: 'api_key_status_toggle',
             auditable: $apiKey,
             oldValues: ['status' => $oldStatus],

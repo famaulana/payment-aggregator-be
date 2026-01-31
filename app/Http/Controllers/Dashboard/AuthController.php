@@ -128,48 +128,143 @@ class AuthController extends Controller
             'last_login_at' => $user->last_login_at?->toDateTimeString(),
         ];
 
-        if ($entityType === 'client' && $entity instanceof \App\Models\Client) {
-            $data['client'] = [
-                'id' => $entity->id,
-                'code' => $entity->client_code,
-                'name' => $entity->client_name,
-            ];
-        } elseif ($entityType === 'head_office' && $entity instanceof \App\Models\HeadOffice) {
-            $data['head_office'] = [
-                'id' => $entity->id,
-                'code' => $entity->code,
-                'name' => $entity->name,
-            ];
-            $data['client'] = [
-                'id' => $entity->client->id,
-                'code' => $entity->client->client_code,
-                'name' => $entity->client->client_name,
-            ];
-        } elseif ($entityType === 'merchant' && $entity instanceof \App\Models\Merchant) {
-            $data['merchant'] = [
-                'id' => $entity->id,
-                'code' => $entity->merchant_code,
-                'name' => $entity->merchant_name,
-            ];
-            $data['head_office'] = [
-                'id' => $entity->headOffice->id,
-                'code' => $entity->headOffice->code,
-                'name' => $entity->headOffice->name,
-            ];
-            $data['client'] = [
-                'id' => $entity->client->id,
-                'code' => $entity->client->client_code,
-                'name' => $entity->client->client_name,
-            ];
-        } elseif ($entityType === 'system_owner' && $entity instanceof \App\Models\SystemOwner) {
-            $data['system_owner'] = [
-                'id' => $entity->id,
-                'name' => $entity->name ?? $entity->pic_name,
-                'email' => $entity->email ?? $entity->pic_email,
-            ];
-        }
+        $data['entity'] = $this->formatEntityData($entity, $entityType);
 
         return $this->success(data: $data, message: __('auth.profile_retrieved'));
+    }
+
+    private function formatEntityData($entity, string $entityType): array
+    {
+        $baseData = [
+            'id'   => $entity->id,
+            'type' => $entityType,
+            'name' => $this->getEntityName($entity, $entityType),
+            'code' => $this->getEntityCode($entity, $entityType),
+        ];
+
+        switch ($entityType) {
+
+            case 'system_owner':
+                $baseData += [
+                    'business_type' => $entity->business_type,
+                    'pic_name'      => $entity->pic_name,
+                    'pic_position'  => $entity->pic_position,
+                    'pic_phone'     => $entity->pic_phone,
+                    'pic_email'     => $entity->pic_email,
+                    'company_phone' => $entity->company_phone,
+                    'company_email' => $entity->company_email,
+                    'address'       => $entity->address,
+                    'postal_code'   => $entity->postal_code,
+                ];
+                break;
+
+            case 'client':
+                $baseData += [
+                    'business_type' => $entity->business_type,
+                    'kyb_status'    => $entity->kyb_status?->value,
+                    'pic_name'      => $entity->pic_name,
+                    'pic_position'  => $entity->pic_position,
+                    'pic_phone'     => $entity->pic_phone,
+                    'pic_email'     => $entity->pic_email,
+                    'company_phone' => $entity->company_phone,
+                    'company_email' => $entity->company_email,
+                    'address'       => $entity->address,
+                    'postal_code'   => $entity->postal_code,
+                ];
+
+                // Parent: System Owner
+                if ($entity->systemOwner) {
+                    $baseData['parent_entities']['system_owner'] = [
+                        'id'   => $entity->systemOwner->id,
+                        'type' => 'system_owner',
+                        'name' => $entity->systemOwner->name,
+                        'code' => $entity->systemOwner->code,
+                    ];
+                }
+                break;
+
+            case 'head_office':
+                $baseData += [
+                    'phone'       => $entity->phone,
+                    'email'       => $entity->email,
+                    'address'     => $entity->address,
+                    'postal_code' => $entity->postal_code,
+                ];
+
+                // Parent: Client
+                if ($entity->client) {
+                    $baseData['parent_entities']['client'] = [
+                        'id'   => $entity->client->id,
+                        'type' => 'client',
+                        'name' => $entity->client->client_name,
+                        'code' => $entity->client->client_code,
+                    ];
+                }
+                break;
+
+            case 'merchant':
+                $baseData += [
+                    'phone'       => $entity->phone,
+                    'email'       => $entity->email,
+                    'address'     => $entity->address,
+                    'postal_code' => $entity->postal_code,
+                ];
+
+                // Parent: Head Office
+                if ($entity->headOffice) {
+                    $baseData['parent_entities']['head_office'] = [
+                        'id'   => $entity->headOffice->id,
+                        'type' => 'head_office',
+                        'name' => $entity->headOffice->name,
+                        'code' => $entity->headOffice->code,
+                    ];
+                }
+
+                // Parent: Client
+                if ($entity->client) {
+                    $baseData['parent_entities']['client'] = [
+                        'id'   => $entity->client->id,
+                        'type' => 'client',
+                        'name' => $entity->client->client_name,
+                        'code' => $entity->client->client_code,
+                    ];
+                }
+                break;
+        }
+
+        return $baseData;
+    }
+
+    private function getEntityName($entity, string $entityType): ?string
+    {
+        switch ($entityType) {
+            case 'system_owner':
+                return $entity->name;
+            case 'client':
+                return $entity->client_name;
+            case 'head_office':
+                return $entity->name;
+            case 'merchant':
+                return $entity->merchant_name;
+            default:
+                return null;
+        }
+    }
+
+    private function getEntityCode($entity, string $entityType): ?string
+    {
+        switch ($entityType) {
+            case 'system_owner':
+                return $entity->code;
+            case 'client':
+                return $entity->client_code;
+            case 'head_office':
+                return $entity->code;
+            case 'merchant':
+                return $entity->merchant_code;
+            default:
+                return null;
+        }
     }
 
     private function getUserEntityTypeFromEntity($user): ?string
