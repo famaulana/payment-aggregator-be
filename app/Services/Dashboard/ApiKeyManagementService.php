@@ -2,6 +2,7 @@
 
 namespace App\Services\Dashboard;
 
+use App\Enums\AuditActionType;
 use App\Models\ApiKey;
 use App\Models\Client;
 use App\Models\User;
@@ -106,7 +107,7 @@ class ApiKeyManagementService
         ];
 
         app(AuditTrailService::class)->log(
-            actionType: AuditTrailService::ACTION_API_KEY_UPDATE,
+            actionType: AuditActionType::API_KEY_UPDATE->value,
             auditable: $apiKey,
             oldValues: $oldValues,
             newValues: $newValues,
@@ -141,9 +142,10 @@ class ApiKeyManagementService
             'api_secret_hashed' => Hash::make($plainApiSecret),
         ]);
 
-        app(\App\Services\AuditTrailService::class)->log(
-            actionType: 'api_secret_regenerate',
+        app(\App\Services\Shared\AuditTrailService::class)->log(
+            actionType: AuditActionType::API_SECRET_REGENERATE->value,
             auditable: $apiKey,
+            oldValues: ['regenerated_at' => $apiKey->updated_at],
             newValues: ['regenerated_at' => now()->toDateTimeString()],
             notes: "API Secret regenerated for: {$apiKey->key_name}"
         );
@@ -225,16 +227,18 @@ class ApiKeyManagementService
         $apiKey = ApiKey::findOrFail($apiKeyId);
 
         $oldStatus = $apiKey->status;
-        $newStatus = $oldStatus === 'active' ? 'inactive' : 'active';
+        $newStatus = $oldStatus === \App\Enums\ApiKeyStatus::ACTIVE
+            ? \App\Enums\ApiKeyStatus::INACTIVE
+            : \App\Enums\ApiKeyStatus::ACTIVE;
 
         $apiKey->update(['status' => $newStatus]);
 
         app(\App\Services\Shared\AuditTrailService::class)->log(
-            actionType: 'api_key_status_toggle',
+            actionType: AuditActionType::API_KEY_STATUS_TOGGLE->value,
             auditable: $apiKey,
             oldValues: ['status' => $oldStatus],
             newValues: ['status' => $newStatus],
-            notes: "API Key status changed to: {$newStatus}"
+            notes: "API Key status changed to: {$newStatus->value}"
         );
 
         return $apiKey->fresh();

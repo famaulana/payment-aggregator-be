@@ -8,6 +8,7 @@ use App\Services\Api\ApiAuthService;
 use App\Enums\ResponseCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -34,11 +35,13 @@ class AuthController extends Controller
                 message: __('auth.api_login_success')
             );
         } catch (\Illuminate\Auth\AuthenticationException $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::AUTHENTICATION_FAILED,
                 message: $e->getMessage()
             );
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('auth.api_login_error')
@@ -49,11 +52,21 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         try {
-            $token = $request->user()->token();
+            $user = $request->user();
+
+            if (!$user) {
+                return $this->error(
+                    code: ResponseCode::UNAUTHENTICATED,
+                    message: __('auth.unauthenticated')
+                );
+            }
+
+            $token = $user->token();
             $this->authService->logout($token);
 
             return $this->success(message: __('auth.api_logout_success'));
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('auth.api_logout_error')
@@ -65,11 +78,17 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        // For API users, get the client from the entity relationship
+        if (!$user) {
+            return $this->error(
+                code: ResponseCode::UNAUTHENTICATED,
+                message: __('auth.unauthenticated')
+            );
+        }
+
         $client = $user->entity;
 
         if (!$client || !($client instanceof \App\Models\Client)) {
-            return $this->error(message: __('auth.client_not_found'), code: 404);
+            return $this->error(code: ResponseCode::NOT_FOUND, message: __('auth.client_not_found'));
         }
 
         $apiKey = \App\Models\ApiKey::where('client_id', $client->id)

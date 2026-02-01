@@ -153,4 +153,12 @@ return [
     'network_error' => 'Network error occurred',
     'too_many_requests' => 'Too many requests',
     'service_unavailable' => 'Service unavailable',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Additional Messages
+    |--------------------------------------------------------------------------
+    */
+    'unauthorized_action' => 'Unauthorized action',
+    'method_not_allowed' => 'Method not allowed',
 ];

@@ -14,27 +14,30 @@ class RoleMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, ...$roles): Response
+    public function handle(Request $request, Closure $next, $role): Response
     {
         if (Auth::guest()) {
             return response()->json([
-                'response_code' => '4010',
-                'response_message' => 'Unauthorized'
-            ], 401);
+                'response_code' => \App\Enums\ResponseCode::UNAUTHORIZED->value,
+                'response_message' => __('messages.unauthorized')
+            ], \App\Enums\ResponseCode::UNAUTHORIZED->getHttpStatusCode());
         }
 
         $user = Auth::user();
 
+        // Parse roles by pipe separator
+        $roles = explode('|', $role);
+
         // Check if user has any of the required roles
-        foreach ($roles as $role) {
-            if ($user->hasRole($role)) {
+        foreach ($roles as $r) {
+            if ($user->hasRole($r)) {
                 return $next($request);
             }
         }
 
         return response()->json([
-            'response_code' => '4030',
-            'response_message' => 'Forbidden: Insufficient permissions'
-        ], 403);
+            'response_code' => \App\Enums\ResponseCode::FORBIDDEN->value,
+            'response_message' => __('messages.forbidden')
+        ], \App\Enums\ResponseCode::FORBIDDEN->getHttpStatusCode());
     }
 }

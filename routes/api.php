@@ -40,8 +40,8 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    Route::post('/login', [ApiAuthController::class, 'login'])->middleware(['validate.ip', 'log.api']);
-    Route::middleware(['auth:api', 'log.api'])->group(function () {
+    Route::post('/login', [ApiAuthController::class, 'login'])->middleware(['validate.ip', 'security.validation', 'log.api']);
+    Route::middleware(['auth:api', 'require.api.key.whitelist', 'validate.ip', 'rate.limit.by.api.key', 'security.validation', 'log.api'])->group(function () {
         Route::post('/logout', [ApiAuthController::class, 'logout']);
         Route::get('/me', [ApiAuthController::class, 'me']);
     });

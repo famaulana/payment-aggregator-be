@@ -7,8 +7,10 @@ use App\Http\Requests\CreateApiKeyRequest;
 use App\Http\Requests\UpdateApiKeyRequest;
 use App\Services\Dashboard\ApiKeyManagementService;
 use App\Enums\ResponseCode;
+use App\Models\ApiKey;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ApiKeyController extends Controller
 {
@@ -74,6 +76,7 @@ class ApiKeyController extends Controller
                 message: __('messages.api_key_created')
             );
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('messages.api_key_create_error')
@@ -127,6 +130,7 @@ class ApiKeyController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFound(__('messages.api_key_not_found'));
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('messages.api_key_update_error')
@@ -162,6 +166,7 @@ class ApiKeyController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFound(__('messages.api_key_not_found'));
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('messages.api_key_revoke_error')
@@ -198,6 +203,7 @@ class ApiKeyController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFound(__('messages.api_key_not_found'));
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('messages.api_secret_regenerate_error')
@@ -230,6 +236,7 @@ class ApiKeyController extends Controller
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFound(__('messages.api_key_not_found'));
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('messages.api_key_toggle_error')
@@ -252,6 +259,7 @@ class ApiKeyController extends Controller
                 message: __('messages.client_api_keys_retrieved')
             );
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('messages.api_keys_retrieve_error')

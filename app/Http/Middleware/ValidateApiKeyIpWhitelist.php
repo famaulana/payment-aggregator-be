@@ -22,9 +22,9 @@ class ValidateApiKeyIpWhitelist
 
                 if (!$this->isAllowedIp($requestIp, $apiKey->ip_whitelist)) {
                     return response()->json([
-                        'response_code' => '2001',
-                        'response_message' => __('auth.ip_not_allowed'),
-                    ], 401);
+                        'response_code' => \App\Enums\ResponseCode::IP_NOT_ALLOWED->value,
+                        'response_message' => __('messages.ip_not_allowed'),
+                    ], \App\Enums\ResponseCode::IP_NOT_ALLOWED->getHttpStatusCode());
                 }
             }
         }

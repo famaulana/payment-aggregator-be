@@ -44,16 +44,6 @@ class ApiKeyMiddleware
             );
         }
 
-        if (!empty($keyRecord->ip_whitelist)) {
-            $requestIp = $request->ip();
-            if (!in_array($requestIp, $keyRecord->ip_whitelist) && $requestIp !== '127.0.0.1') {
-                return ResponseService::error(
-                    ResponseCode::FORBIDDEN,
-                    __('messages.ip_not_allowed')
-                );
-            }
-        }
-
         if ($apiSecret && !Hash::check($apiSecret, $keyRecord->api_secret_hashed)) {
             return ResponseService::error(
                 ResponseCode::UNAUTHORIZED,

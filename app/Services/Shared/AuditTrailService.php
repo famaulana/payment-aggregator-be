@@ -111,7 +111,7 @@ class AuditTrailService
             'user_id' => Auth::id(),
             'user_role' => Auth::user()?->role_name,
             'action_type' => AuditActionType::API_KEY_CREATE->value,
-            'auditable_type' => 'api_key',
+            'auditable_type' => \App\Models\ApiKey::class,
             'auditable_id' => $apiKeyId,
             'new_values' => $keyData,
             'changes_summary' => "API Key created: {$keyData['key_name']}",
@@ -129,7 +129,7 @@ class AuditTrailService
             'user_id' => Auth::id(),
             'user_role' => Auth::user()?->role_name,
             'action_type' => AuditActionType::API_KEY_REVOKE->value,
-            'auditable_type' => 'api_key',
+            'auditable_type' => \App\Models\ApiKey::class,
             'auditable_id' => $apiKeyId,
             'new_values' => [
                 'revoked_at' => now()->toDateTimeString(),
@@ -150,7 +150,7 @@ class AuditTrailService
             'user_id' => null,
             'user_role' => 'api_key',
             'action_type' => AuditActionType::LOGIN->value,
-            'auditable_type' => 'api_key',
+            'auditable_type' => \App\Models\ApiKey::class,
             'auditable_id' => $apiKeyId,
             'new_values' => [
                 'client_code' => $clientCode,
@@ -215,10 +215,30 @@ class AuditTrailService
 
         $changes = [];
         foreach ($newValues as $key => $value) {
-            if (isset($oldValues[$key]) && $oldValues[$key] != $value) {
-                $changes[] = "{$key}: '{$oldValues[$key]}' -> '{$value}'";
+            $oldValue = $oldValues[$key] ?? null;
+            $newValue = $value;
+
+            // Convert enums to their value
+            if ($oldValue instanceof \BackedEnum) {
+                $oldValue = $oldValue->value;
+            } elseif (is_object($oldValue) && method_exists($oldValue, 'value')) {
+                $oldValue = $oldValue->value;
+            } elseif (is_object($oldValue)) {
+                $oldValue = get_class($oldValue);
+            }
+
+            if ($newValue instanceof \BackedEnum) {
+                $newValue = $newValue->value;
+            } elseif (is_object($newValue) && method_exists($newValue, 'value')) {
+                $newValue = $newValue->value;
+            } elseif (is_object($newValue)) {
+                $newValue = get_class($newValue);
+            }
+
+            if (isset($oldValues[$key]) && $oldValue != $newValue) {
+                $changes[] = "{$key}: '{$oldValue}' -> '{$newValue}'";
             } elseif (!isset($oldValues[$key])) {
-                $changes[] = "{$key}: set to '{$value}'";
+                $changes[] = "{$key}: set to '{$newValue}'";
             }
         }
 

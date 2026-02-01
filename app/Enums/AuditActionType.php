@@ -27,6 +27,8 @@ enum AuditActionType: string
     case API_KEY_UPDATE = 'api_key_update';
     case API_KEY_DELETE = 'api_key_delete';
     case API_KEY_REVOKE = 'api_key_revoke';
+    case API_KEY_STATUS_TOGGLE = 'api_key_status_toggle';
+    case API_SECRET_REGENERATE = 'api_secret_regenerate';
 
     public function label(): string
     {
@@ -50,6 +52,8 @@ enum AuditActionType: string
             self::API_KEY_UPDATE => 'API Key Update',
             self::API_KEY_DELETE => 'API Key Delete',
             self::API_KEY_REVOKE => 'API Key Revoke',
+            self::API_KEY_STATUS_TOGGLE => 'API Key Status Toggle',
+            self::API_SECRET_REGENERATE => 'API Secret Regenerate',
         };
     }
 

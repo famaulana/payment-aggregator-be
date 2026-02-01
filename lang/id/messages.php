@@ -153,4 +153,12 @@ return [
     'network_error' => 'Terjadi kesalahan jaringan',
     'too_many_requests' => 'Terlalu banyak permintaan',
     'service_unavailable' => 'Layanan tidak tersedia',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Additional Messages
+    |--------------------------------------------------------------------------
+    */
+    'unauthorized_action' => 'Aksi tidak diizinkan',
+    'method_not_allowed' => 'Metode tidak diizinkan',
 ];

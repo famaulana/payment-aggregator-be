@@ -69,11 +69,13 @@ class AuthController extends Controller
                 message: __('auth.refresh_success')
             );
         } catch (\Illuminate\Auth\AuthenticationException $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::TOKEN_INVALID,
                 message: $e->getMessage()
             );
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('auth.refresh_error')
@@ -89,6 +91,7 @@ class AuthController extends Controller
 
             return $this->success(message: __('auth.logout_success'));
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('auth.logout_error')
@@ -104,6 +107,7 @@ class AuthController extends Controller
 
             return $this->success(message: __('auth.logout_all_success'));
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('auth.logout_all_error')

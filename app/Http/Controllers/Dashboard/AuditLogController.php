@@ -8,6 +8,7 @@ use App\Services\Shared\AuditTrailService;
 use App\Enums\ResponseCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AuditLogController extends Controller
 {
@@ -36,6 +37,7 @@ class AuditLogController extends Controller
                 message: __('messages.audit_logs_retrieved')
             );
         } catch (\Exception $e) {
+            Log::error($e);
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
                 message: __('messages.audit_logs_error')
