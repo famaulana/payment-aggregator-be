@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-
+use App\Http\Resources\AuditTrailResource;
 use App\Services\Shared\AuditTrailService;
 use App\Enums\ResponseCode;
 use Illuminate\Http\JsonResponse;
@@ -32,6 +32,13 @@ class AuditLogController extends Controller
             $perPage = $request->per_page ?? 50;
             $auditLogs = $this->auditService->getAuditLogs($filters, $perPage);
 
+            // Transform collection to use AuditTrailResource
+            $auditLogs = $auditLogs->setCollection(
+                $auditLogs->getCollection()->map(function ($item) {
+                    return new AuditTrailResource($item);
+                })
+            );
+
             return $this->pagination(
                 paginator: $auditLogs,
                 message: __('messages.audit_logs_retrieved')
@@ -48,11 +55,11 @@ class AuditLogController extends Controller
     public function show(int $id): JsonResponse
     {
         try {
-            $auditLog = \App\Models\AuditTrail::with(['user', 'client'])
+            $auditLog = \App\Models\AuditTrail::with(['user', 'auditable'])
                 ->findOrFail($id);
 
             return $this->success(
-                data: $auditLog,
+                data: new AuditTrailResource($auditLog),
                 message: __('messages.audit_log_retrieved')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
