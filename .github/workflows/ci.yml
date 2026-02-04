@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - release/development
+  pull_request:
+    branches:
+      - release/development
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Setup PHP
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, pdo_pgsql, bcmath, tokenizer, curl
+          ini-values: post_max_size=256M, upload_max_filesize=256M
+
+      # Step 3: Cache Composer
+      - name: Cache Composer
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      # Step 4: Install dependencies
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      # Step 5: Install Paratest
+      # - name: Install Paratest
+      #   run: composer require --dev brianium/paratest:^7.0
+
+      # Step 6: Run Laravel Unit Tests
+      # - name: Run Laravel Unit Tests
+      #   run: php artisan test --parallel
+ 

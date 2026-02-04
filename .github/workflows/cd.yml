@@ -1,0 +1,100 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - release/development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Development Server
+        uses: appleboy/ssh-action@v0.1.9
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /var/www/payment-aggregator-be || exit
+
+            echo "Fetching latest release/development..."
+            git fetch origin
+            git checkout release/development || { echo "Cannot switch to release/development branch"; exit 1; }
+            git reset --hard origin/release/development
+            git clean -fd
+            git pull origin release/development
+
+            echo "Load env variables..."
+            set -a
+            source .env
+            set +a
+
+            echo "Composer install & optimize..."
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction
+
+            echo "Laravel caching..."
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            if [ "$APP_ENV" == "development" ]; then
+                echo "Backup Database..."
+                BACKUP_DIR="./backup/db"
+                mkdir -p "$BACKUP_DIR"
+                BACKUP_FILE="$BACKUP_DIR/db_$(date +%F_%H-%M-%S).sql"
+
+                # Deteksi database driver dan backup sesuai jenis
+                if [ "$DB_CONNECTION" == "pgsql" ]; then
+                    echo "Backing up PostgreSQL database..."
+                    PGPASSWORD=$DB_PASSWORD pg_dump \
+                        -U $DB_USERNAME \
+                        -h $DB_HOST \
+                        -p ${DB_PORT:-5432} \
+                        -d $DB_DATABASE \
+                        --no-owner \
+                        --no-acl \
+                        -F c \
+                        -f "$BACKUP_FILE.dump"
+                    echo "PostgreSQL backup done: $BACKUP_FILE.dump"
+
+                elif [ "$DB_CONNECTION" == "mysql" ]; then
+                    echo "Backing up MySQL database..."
+                    mysqldump \
+                        -h $DB_HOST \
+                        -P ${DB_PORT:-3306} \
+                        -u $DB_USERNAME \
+                        -p$DB_PASSWORD \
+                        --single-transaction \
+                        --quick \
+                        --lock-tables=false \
+                        $DB_DATABASE > "$BACKUP_FILE"
+                    echo "MySQL backup done: $BACKUP_FILE"
+                else
+                    echo "Unsupported database driver: $DB_CONNECTION"
+                fi
+
+                # Cleanup old backups (keep last 7 days)
+                find "$BACKUP_DIR" -name "db_*" -type f -mtime +7 -delete
+
+                echo "Run migrations..."
+                php artisan migrate --force
+            fi
+
+            # Clear old PM2 processes dan restart
+            echo "Restart Laravel using PM2..."
+            pm2 delete pg-api || true
+            pm2 start ecosystem.config.cjs
+            pm2 save
+
+            # Tunggu beberapa detik untuk proses start
+            sleep 3
+            pm2 list
+
+            echo "Deployment complete!"
