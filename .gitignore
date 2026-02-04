@@ -91,3 +91,4 @@ scripts
 postman
 docs/prd.txt
 merge.sh
+ecosystem.config.cjs

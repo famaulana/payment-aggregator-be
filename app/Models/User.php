@@ -261,17 +261,13 @@ class User extends Authenticatable
     public function isHeadOfficeUser(): bool
     {
         return $this->entity_type === HeadOffice::class
-            || $this->hasExactRole('head_office')
-            || $this->hasRole('head_office_admin')
-            || $this->hasRole('head_office_supervisor');
+            || $this->hasExactRole('head_office');
     }
 
     public function isMerchantUser(): bool
     {
         return $this->entity_type === Merchant::class
-            || $this->hasExactRole('merchant')
-            || $this->hasRole('merchant_admin')
-            || $this->hasRole('merchant_cashier');
+            || $this->hasExactRole('merchant');
     }
 
     public function getParentRole(): ?Role

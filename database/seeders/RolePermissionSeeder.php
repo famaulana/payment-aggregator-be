@@ -25,19 +25,15 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'system_owner_admin', 'display_name' => 'System Owner Admin', 'parent_role' => 'system_owner'],
             ['name' => 'system_owner_finance', 'display_name' => 'System Owner Finance', 'parent_role' => 'system_owner'],
             ['name' => 'system_owner_support', 'display_name' => 'System Owner Support', 'parent_role' => 'system_owner'],
-            
+
             ['name' => 'client', 'display_name' => 'Client', 'parent_role' => null],
             ['name' => 'client_admin', 'display_name' => 'Client Admin', 'parent_role' => 'client'],
             ['name' => 'client_finance', 'display_name' => 'Client Finance', 'parent_role' => 'client'],
             ['name' => 'client_operations', 'display_name' => 'Client Operations', 'parent_role' => 'client'],
-            
+
             ['name' => 'head_office', 'display_name' => 'Head Office', 'parent_role' => null],
-            ['name' => 'head_office_admin', 'display_name' => 'Head Office Admin', 'parent_role' => 'head_office'],
-            ['name' => 'head_office_supervisor', 'display_name' => 'Head Office Supervisor', 'parent_role' => 'head_office'],
-            
+
             ['name' => 'merchant', 'display_name' => 'Merchant', 'parent_role' => null],
-            ['name' => 'merchant_admin', 'display_name' => 'Merchant Admin', 'parent_role' => 'merchant'],
-            ['name' => 'merchant_cashier', 'display_name' => 'Merchant Cashier', 'parent_role' => 'merchant'],
         ];
 
         foreach ($roles as $roleData) {
@@ -62,7 +58,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'manage_platform', 'display_name' => 'Manage Platform', 'category' => 'platform'],
             ['name' => 'manage_all_clients', 'display_name' => 'Manage All Clients', 'category' => 'client'],
             ['name' => 'manage_all_users', 'display_name' => 'Manage All Users', 'category' => 'user'],
-            
+
             ['name' => 'view_all_transactions_national', 'display_name' => 'View All Transactions National', 'category' => 'transaction'],
             ['name' => 'view_regional_transactions', 'display_name' => 'View Regional Transactions', 'category' => 'transaction'],
             ['name' => 'view_own_merchant_transactions', 'display_name' => 'View Own Merchant Transactions', 'category' => 'transaction'],
@@ -76,7 +72,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'override_transaction_status', 'display_name' => 'Override Transaction Status', 'category' => 'transaction'],
             ['name' => 'view_triple_reference_id', 'display_name' => 'View Triple Reference ID', 'category' => 'transaction'],
             ['name' => 'view_pg_and_application_fee', 'display_name' => 'View PG And Application Fee', 'category' => 'transaction'],
-            
+
             ['name' => 'request_settlement', 'display_name' => 'Request Settlement', 'category' => 'settlement'],
             ['name' => 'view_all_settlement_requests', 'display_name' => 'View All Settlement Requests', 'category' => 'settlement'],
             ['name' => 'approve_settlement_request', 'display_name' => 'Approve Settlement Request', 'category' => 'settlement'],
@@ -86,7 +82,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'approve_settlements', 'display_name' => 'Approve Settlements', 'category' => 'settlement'],
             ['name' => 'view_own_settlements', 'display_name' => 'View Own Settlements', 'category' => 'settlement'],
             ['name' => 'view_merchant_settlements', 'display_name' => 'View Merchant Settlements', 'category' => 'settlement'],
-            
+
             ['name' => 'view_available_balance', 'display_name' => 'View Available Balance', 'category' => 'finance'],
             ['name' => 'view_pending_balance', 'display_name' => 'View Pending Balance', 'category' => 'finance'],
             ['name' => 'view_minus_balance', 'display_name' => 'View Minus Balance', 'category' => 'finance'],
@@ -102,14 +98,14 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'view_mismatch_data', 'display_name' => 'View Mismatch Data', 'category' => 'finance'],
             ['name' => 'view_client_debt', 'display_name' => 'View Client Debt', 'category' => 'finance'],
             ['name' => 'adjust_settlement_difference', 'display_name' => 'Adjust Settlement Difference', 'category' => 'finance'],
-            
+
             ['name' => 'view_audit_trails', 'display_name' => 'View Audit Trails', 'category' => 'audit'],
             ['name' => 'view_internal_activity_logs', 'display_name' => 'View Internal Activity Logs', 'category' => 'audit'],
             ['name' => 'filter_internal_logs', 'display_name' => 'Filter Internal Logs', 'category' => 'audit'],
             ['name' => 'view_external_activity_logs', 'display_name' => 'View External Activity Logs', 'category' => 'audit'],
             ['name' => 'filter_external_logs', 'display_name' => 'Filter External Logs', 'category' => 'audit'],
             ['name' => 'view_masked_payload', 'display_name' => 'View Masked Payload', 'category' => 'audit'],
-            
+
             ['name' => 'manage_payment_gateways', 'display_name' => 'Manage Payment Gateways', 'category' => 'payment_gateway'],
             ['name' => 'view_payment_gateways', 'display_name' => 'View Payment Gateways', 'category' => 'payment_gateway'],
             ['name' => 'view_payment_methods', 'display_name' => 'View Payment Methods', 'category' => 'payment_gateway'],
@@ -122,7 +118,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'update_headquarter_account', 'display_name' => 'Update Headquarter Account', 'category' => 'head_office'],
             ['name' => 'activate_headquarter_account', 'display_name' => 'Activate Headquarter Account', 'category' => 'head_office'],
             ['name' => 'deactivate_headquarter_account', 'display_name' => 'Deactivate Headquarter Account', 'category' => 'head_office'],
-            
+
             ['name' => 'manage_own_merchants', 'display_name' => 'Manage Own Merchants', 'category' => 'merchant'],
             ['name' => 'view_merchant_list', 'display_name' => 'View Merchant List', 'category' => 'merchant'],
             ['name' => 'add_merchant', 'display_name' => 'Add Merchant', 'category' => 'merchant'],
@@ -131,7 +127,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'deactivate_merchant', 'display_name' => 'Deactivate Merchant', 'category' => 'merchant'],
             ['name' => 'auto_sync_merchant_from_pos', 'display_name' => 'Auto Sync Merchant From POS', 'category' => 'merchant'],
             ['name' => 'view_merchant_data', 'display_name' => 'View Merchant Data', 'category' => 'merchant'],
-            
+
             ['name' => 'manage_own_users', 'display_name' => 'Manage Own Users', 'category' => 'user'],
             ['name' => 'view_all_users', 'display_name' => 'View All Users', 'category' => 'user'],
             ['name' => 'create_headquarter_user', 'display_name' => 'Create Headquarter User', 'category' => 'user'],
@@ -139,15 +135,15 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'update_user_status', 'display_name' => 'Update User Status', 'category' => 'user'],
             ['name' => 'reset_user_password', 'display_name' => 'Reset User Password', 'category' => 'user'],
             ['name' => 'manage_own_merchant_users', 'display_name' => 'Manage Own Merchant Users', 'category' => 'user'],
-            
+
             ['name' => 'manage_own_api_keys', 'display_name' => 'Manage Own API Keys', 'category' => 'api_key'],
-            
+
             ['name' => 'view_dashboard_summary', 'display_name' => 'View Dashboard Summary', 'category' => 'dashboard'],
             ['name' => 'view_top_merchants', 'display_name' => 'View Top Merchants', 'category' => 'dashboard'],
             ['name' => 'view_payment_method_stats', 'display_name' => 'View Payment Method Stats', 'category' => 'dashboard'],
             ['name' => 'view_our_margin', 'display_name' => 'View Our Margin', 'category' => 'dashboard'],
             ['name' => 'view_paid_pending_failed_stats', 'display_name' => 'View Paid Pending Failed Stats', 'category' => 'dashboard'],
-            
+
             ['name' => 'generate_transaction_report', 'display_name' => 'Generate Transaction Report', 'category' => 'report'],
             ['name' => 'generate_settlement_report', 'display_name' => 'Generate Settlement Report', 'category' => 'report'],
             ['name' => 'generate_difference_report', 'display_name' => 'Generate Difference Report', 'category' => 'report'],
@@ -156,7 +152,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'export_settlement_report', 'display_name' => 'Export Settlement Report', 'category' => 'report'],
             ['name' => 'view_own_reports', 'display_name' => 'View Own Reports', 'category' => 'report'],
             ['name' => 'view_merchant_reports', 'display_name' => 'View Merchant Reports', 'category' => 'report'],
-            
+
             ['name' => 'process_payments', 'display_name' => 'Process Payments', 'category' => 'payment'],
         ];
 
@@ -338,11 +334,7 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // Head Office Admin & Supervisor - Same as head office
-        $headOfficeAdmin = Role::where('name', 'head_office_admin')->first();
-        $headOfficeAdmin?->syncPermissions($headOffice?->permissions ?? collect());
-
-        $headOfficeSupervisor = Role::where('name', 'head_office_supervisor')->first();
-        $headOfficeSupervisor?->syncPermissions($headOffice?->permissions ?? collect());
+        // Note: head_office_admin and head_office_supervisor roles have been removed
 
         // Merchant - View own transactions & request settlement
         $merchant = Role::where('name', 'merchant')->first();
@@ -358,15 +350,6 @@ class RolePermissionSeeder extends Seeder
             'view_merchant_data',
         ]);
 
-        // Merchant Admin - Same as merchant
-        $merchantAdmin = Role::where('name', 'merchant_admin')->first();
-        $merchantAdmin?->syncPermissions($merchant?->permissions ?? collect());
-
-        // Merchant Cashier - Payment processing only
-        $merchantCashier = Role::where('name', 'merchant_cashier')->first();
-        $merchantCashier?->syncPermissions([
-            'process_payments',
-            'view_merchant_data',
-        ]);
+        // Note: merchant_admin and merchant_cashier roles have been removed
     }
 }
