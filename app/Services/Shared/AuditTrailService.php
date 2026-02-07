@@ -165,6 +165,80 @@ class AuditTrailService
         ]);
     }
 
+    public function logUserCreate(int $userId, array $userData): AuditTrail
+    {
+        return AuditTrail::create([
+            'user_id' => Auth::id(),
+            'user_role' => Auth::user()?->role_name,
+            'action_type' => AuditActionType::CREATE->value,
+            'auditable_type' => User::class,
+            'auditable_id' => $userId,
+            'new_values' => $userData,
+            'changes_summary' => "User created: {$userData['username']}",
+            'ip_address' => request()?->ip(),
+            'user_agent' => request()?->userAgent(),
+            'endpoint' => request()?->fullUrl(),
+            'http_method' => request()?->method(),
+            'notes' => "User created: {$userData['username']}",
+        ]);
+    }
+
+    public function logUserUpdate(int $userId, array $oldValues, array $newValues): AuditTrail
+    {
+        return AuditTrail::create([
+            'user_id' => Auth::id(),
+            'user_role' => Auth::user()?->role_name,
+            'action_type' => AuditActionType::UPDATE->value,
+            'auditable_type' => User::class,
+            'auditable_id' => $userId,
+            'old_values' => $oldValues,
+            'new_values' => $newValues,
+            'changes_summary' => $this->generateChangesSummary($oldValues, $newValues),
+            'ip_address' => request()?->ip(),
+            'user_agent' => request()?->userAgent(),
+            'endpoint' => request()?->fullUrl(),
+            'http_method' => request()?->method(),
+            'notes' => "User updated: ID {$userId}",
+        ]);
+    }
+
+    public function logUserStatusToggle(int $userId, string $newStatus): AuditTrail
+    {
+        return AuditTrail::create([
+            'user_id' => Auth::id(),
+            'user_role' => Auth::user()?->role_name,
+            'action_type' => AuditActionType::UPDATE->value,
+            'auditable_type' => User::class,
+            'auditable_id' => $userId,
+            'new_values' => [
+                'status' => $newStatus,
+            ],
+            'changes_summary' => "User status changed to: {$newStatus}",
+            'ip_address' => request()?->ip(),
+            'user_agent' => request()?->userAgent(),
+            'endpoint' => request()?->fullUrl(),
+            'http_method' => request()?->method(),
+            'notes' => "User status changed to: {$newStatus}",
+        ]);
+    }
+
+    public function logUserPasswordReset(int $userId): AuditTrail
+    {
+        return AuditTrail::create([
+            'user_id' => Auth::id(),
+            'user_role' => Auth::user()?->role_name,
+            'action_type' => AuditActionType::PASSWORD_CHANGE->value,
+            'auditable_type' => User::class,
+            'auditable_id' => $userId,
+            'changes_summary' => "User password reset",
+            'ip_address' => request()?->ip(),
+            'user_agent' => request()?->userAgent(),
+            'endpoint' => request()?->fullUrl(),
+            'http_method' => request()?->method(),
+            'notes' => "User password reset by admin",
+        ]);
+    }
+
     public function getAuditLogs(array $filters = [], int $perPage = 50)
     {
         $query = AuditTrail::with(['user', 'auditable'])

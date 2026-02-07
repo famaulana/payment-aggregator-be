@@ -156,6 +156,82 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | User Management (Dashboard)
+    |--------------------------------------------------------------------------
+    */
+    'users_retrieved' => 'Pengguna berhasil diambil',
+    'user_retrieved' => 'Pengguna berhasil diambil',
+    'user_created' => 'Pengguna berhasil dibuat',
+    'user_and_entity_created' => 'Pengguna dan entitas berhasil dibuat',
+    'user_updated' => 'Pengguna berhasil diperbarui',
+    'user_status_updated' => 'Status pengguna berhasil diperbarui',
+    'user_password_reset' => 'Password pengguna berhasil direset',
+
+    'cannot_create_system_owner' => 'Tidak dapat membuat pengguna system owner',
+    'cannot_assign_system_owner_role' => 'Tidak dapat memberikan role system owner',
+    'system_owner_can_only_create_client_users' => 'System owner hanya dapat membuat pengguna klien',
+    'client_can_only_create_head_office_or_merchant_users' => 'Klien hanya dapat membuat pengguna head office atau merchant',
+    'head_office_can_only_create_merchant_users' => 'Head office hanya dapat membuat pengguna merchant',
+    'entity_type_must_be_client' => 'Tipe entitas harus klien',
+    'entity_type_must_be_merchant' => 'Tipe entitas harus merchant',
+    'head_office_must_belong_to_your_client' => 'Head office harus milik klien Anda',
+    'merchant_must_belong_to_your_client' => 'Merchant harus milik klien Anda',
+    'merchant_must_belong_to_your_head_office' => 'Merchant harus milik head office Anda',
+    'invalid_entity_type' => 'Tipe entitas tidak valid',
+    'failed_to_create_entity' => 'Gagal membuat entitas',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Client Management (Dashboard)
+    |--------------------------------------------------------------------------
+    */
+    'clients_retrieved' => 'Klien berhasil diambil',
+    'client_retrieved' => 'Klien berhasil diambil',
+    'client_created' => 'Klien berhasil dibuat',
+    'client_updated' => 'Klien berhasil diperbarui',
+    'client_status_updated' => 'Status klien berhasil diperbarui',
+    'client_create_error' => 'Gagal membuat klien',
+    'client_update_error' => 'Gagal memperbarui klien',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Head Office Management (Dashboard)
+    |--------------------------------------------------------------------------
+    */
+    'head_offices_retrieved' => 'Head office berhasil diambil',
+    'head_office_retrieved' => 'Head office berhasil diambil',
+    'head_office_created' => 'Head office berhasil dibuat',
+    'head_office_updated' => 'Head office berhasil diperbarui',
+    'head_office_status_updated' => 'Status head office berhasil diperbarui',
+    'head_office_not_found' => 'Head office tidak ditemukan',
+    'head_office_create_error' => 'Gagal membuat head office',
+    'head_office_update_error' => 'Gagal memperbarui head office',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Merchant Management (Dashboard)
+    |--------------------------------------------------------------------------
+    */
+    'merchants_retrieved' => 'Merchant berhasil diambil',
+    'merchant_retrieved' => 'Merchant berhasil diambil',
+    'merchant_created' => 'Merchant berhasil dibuat',
+    'merchant_updated' => 'Merchant berhasil diperbarui',
+    'merchant_status_updated' => 'Status merchant berhasil diperbarui',
+    'merchant_create_error' => 'Gagal membuat merchant',
+    'merchant_update_error' => 'Gagal memperbarui merchant',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Location (Dashboard)
+    |--------------------------------------------------------------------------
+    */
+    'provinces_retrieved' => 'Provinsi berhasil diambil',
+    'cities_retrieved' => 'Kota berhasil diambil',
+    'districts_retrieved' => 'Kecamatan berhasil diambil',
+    'sub_districts_retrieved' => 'Kelurahan berhasil diambil',
+
+    /*
+    |--------------------------------------------------------------------------
     | Additional Messages
     |--------------------------------------------------------------------------
     */

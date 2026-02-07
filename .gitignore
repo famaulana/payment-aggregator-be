@@ -87,8 +87,12 @@ Homestead.yaml
 *.bak
 *.old
 *.tmp
+*_key
+*.pem
+*.pub
 scripts
 postman
 docs/prd.txt
 merge.sh
 ecosystem.config.cjs
+.claude

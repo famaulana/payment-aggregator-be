@@ -43,4 +43,19 @@ return [
     |--------------------------------------------------------------------------
     */
     'refresh_token_required' => 'Refresh token is required',
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Management
+    |--------------------------------------------------------------------------
+    */
+    'username_required' => 'Username is required',
+    'username_exists' => 'Username already exists',
+    'email_exists' => 'Email already exists',
+    'password_confirmation_mismatch' => 'Password confirmation does not match',
+    'full_name_required' => 'Full name is required',
+    'role_required' => 'Role is required',
+    'role_not_found' => 'Role not found',
+    'entity_type_required' => 'Entity type is required',
+    'entity_id_required' => 'Entity ID is required',
 ];
