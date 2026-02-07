@@ -43,4 +43,19 @@ return [
     |--------------------------------------------------------------------------
     */
     'refresh_token_required' => 'Refresh token wajib diisi',
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Management
+    |--------------------------------------------------------------------------
+    */
+    'username_required' => 'Username wajib diisi',
+    'username_exists' => 'Username sudah digunakan',
+    'email_exists' => 'Email sudah digunakan',
+    'password_confirmation_mismatch' => 'Konfirmasi password tidak cocok',
+    'full_name_required' => 'Nama lengkap wajib diisi',
+    'role_required' => 'Role wajib diisi',
+    'role_not_found' => 'Role tidak ditemukan',
+    'entity_type_required' => 'Tipe entitas wajib diisi',
+    'entity_id_required' => 'ID entitas wajib diisi',
 ];
