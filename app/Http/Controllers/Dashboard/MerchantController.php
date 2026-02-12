@@ -16,17 +16,17 @@ class MerchantController extends Controller
     {
         $user = auth()->user();
 
-        // Only System Owner, Client, and Head Office can list merchants
-        if (!$user->isSystemOwner() && !$user->isClientUser() && !$user->isHeadOfficeUser()) {
+        // Only System Owner, Client, and Head Quarter can list merchants
+        if (!$user->isSystemOwner() && !$user->isClientUser() && !$user->isHeadQuarterUser()) {
             return $this->forbidden(__('messages.unauthorized_action'));
         }
 
-        $query = Merchant::with(['client', 'headOffice', 'province', 'city', 'district', 'subDistrict', 'creator']);
+        $query = Merchant::with(['client', 'headQuarter', 'province', 'city', 'district', 'subDistrict', 'creator']);
 
         if ($user->isClientUser()) {
             $query->where('client_id', $user->getClientId());
-        } elseif ($user->isHeadOfficeUser()) {
-            $query->where('head_office_id', $user->getHeadOfficeId());
+        } elseif ($user->isHeadQuarterUser()) {
+            $query->where('head_quarter_id', $user->getHeadQuarterId());
         }
         // System owner can see all merchants (no filter needed)
 
@@ -34,8 +34,8 @@ class MerchantController extends Controller
             $query->where('client_id', $request->client_id);
         }
 
-        if ($request->filled('head_office_id')) {
-            $query->where('head_office_id', $request->head_office_id);
+        if ($request->filled('head_quarter_id')) {
+            $query->where('head_quarter_id', $request->head_quarter_id);
         }
 
         if ($request->filled('search')) {
@@ -69,7 +69,7 @@ class MerchantController extends Controller
         $validationRules = [
             'merchant_code' => ['required', 'string', 'max:50', 'unique:merchants,merchant_code'],
             'merchant_name' => ['required', 'string', 'max:255'],
-            'head_office_id' => ['nullable', 'exists:head_offices,id'],
+            'head_quarter_id' => ['nullable', 'exists:head_quarters,id'],
             'province_id' => ['required', 'exists:provinces,id'],
             'city_id' => ['required', 'exists:cities,id'],
             'district_id' => ['nullable', 'exists:districts,id'],
@@ -89,7 +89,7 @@ class MerchantController extends Controller
         $request->validate($validationRules);
 
         try {
-            if (!$user->isSystemOwner() && !$user->isClientUser() && !$user->isHeadOfficeUser()) {
+            if (!$user->isSystemOwner() && !$user->isClientUser() && !$user->isHeadQuarterUser()) {
                 return $this->forbidden(__('messages.unauthorized_action'));
             }
 
@@ -104,7 +104,7 @@ class MerchantController extends Controller
             ]));
 
             return $this->created(
-                data: new MerchantResource($merchant->load(['client', 'headOffice', 'province', 'city', 'district', 'subDistrict', 'creator'])),
+                data: new MerchantResource($merchant->load(['client', 'headQuarter', 'province', 'city', 'district', 'subDistrict', 'creator'])),
                 message: __('messages.merchant_created')
             );
         } catch (\Exception $e) {
@@ -123,7 +123,7 @@ class MerchantController extends Controller
     {
         try {
             $user = auth()->user();
-            $merchant = Merchant::with(['client', 'headOffice', 'province', 'city', 'district', 'subDistrict', 'creator'])->findOrFail($id);
+            $merchant = Merchant::with(['client', 'headQuarter', 'province', 'city', 'district', 'subDistrict', 'creator'])->findOrFail($id);
 
             // Authorization check based on user role
             if ($user->isMerchantUser()) {
@@ -131,9 +131,9 @@ class MerchantController extends Controller
                 if ($merchant->id !== $user->getMerchantId()) {
                     return $this->forbidden(__('messages.unauthorized_action'));
                 }
-            } elseif ($user->isHeadOfficeUser()) {
-                // Head Office users can only view merchants under their head office
-                if ($merchant->head_office_id !== $user->getHeadOfficeId()) {
+            } elseif ($user->isHeadQuarterUser()) {
+                // Head Quarter users can only view merchants under their head quarter
+                if ($merchant->head_quarter_id !== $user->getHeadQuarterId()) {
                     return $this->forbidden(__('messages.unauthorized_action'));
                 }
             } elseif ($user->isClientUser()) {
@@ -157,7 +157,7 @@ class MerchantController extends Controller
     {
         $request->validate([
             'merchant_name' => ['sometimes', 'string', 'max:255'],
-            'head_office_id' => ['nullable', 'exists:head_offices,id'],
+            'head_quarter_id' => ['nullable', 'exists:head_quarters,id'],
             'province_id' => ['sometimes', 'exists:provinces,id'],
             'city_id' => ['sometimes', 'exists:cities,id'],
             'district_id' => ['nullable', 'exists:districts,id'],
@@ -175,7 +175,7 @@ class MerchantController extends Controller
             $merchant->update($request->all());
 
             return $this->updated(
-                data: new MerchantResource($merchant->load(['client', 'headOffice', 'province', 'city', 'district', 'subDistrict', 'creator'])),
+                data: new MerchantResource($merchant->load(['client', 'headQuarter', 'province', 'city', 'district', 'subDistrict', 'creator'])),
                 message: __('messages.merchant_updated')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -200,7 +200,7 @@ class MerchantController extends Controller
             $merchant->save();
 
             return $this->success(
-                data: new MerchantResource($merchant->load(['client', 'headOffice', 'province', 'city', 'district', 'subDistrict', 'creator'])),
+                data: new MerchantResource($merchant->load(['client', 'headQuarter', 'province', 'city', 'district', 'subDistrict', 'creator'])),
                 message: __('messages.merchant_status_updated')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {

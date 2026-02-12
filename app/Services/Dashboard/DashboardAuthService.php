@@ -219,8 +219,8 @@ class DashboardAuthService
                 'code' => $entity->client_code,
                 'name' => $entity->client_name,
             ];
-        } elseif ($entity instanceof \App\Models\HeadOffice) {
-            $data['head_office'] = [
+        } elseif ($entity instanceof \App\Models\HeadQuarter) {
+            $data['head_quarter'] = [
                 'id' => $entity->id,
                 'code' => $entity->code,
                 'name' => $entity->name,
@@ -236,11 +236,11 @@ class DashboardAuthService
                 'code' => $entity->merchant_code,
                 'name' => $entity->merchant_name,
             ];
-            if ($entity->headOffice) {
-                $data['head_office'] = [
-                    'id' => $entity->headOffice->id,
-                    'code' => $entity->headOffice->code,
-                    'name' => $entity->headOffice->name,
+            if ($entity->headQuarter) {
+                $data['head_quarter'] = [
+                    'id' => $entity->headQuarter->id,
+                    'code' => $entity->headQuarter->code,
+                    'name' => $entity->headQuarter->name,
                 ];
             }
             $data['client'] = [

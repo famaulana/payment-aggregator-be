@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\HeadOfficeResource;
-use App\Models\HeadOffice;
+use App\Http\Resources\HeadQuarterResource;
+use App\Models\HeadQuarter;
 use App\Enums\ResponseCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class HeadOfficeController extends Controller
+class HeadQuarterController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
         $user = auth()->user();
-        $query = HeadOffice::with(['client', 'province', 'city', 'district', 'subDistrict']);
+        $query = HeadQuarter::with(['client', 'province', 'city', 'district', 'subDistrict']);
 
         if ($user->isClientUser()) {
             $query->where('client_id', $user->getClientId());
@@ -39,15 +39,15 @@ class HeadOfficeController extends Controller
             $query->where('status', $request->status);
         }
 
-        $headOffices = $query->orderBy('created_at', 'desc')->paginate(15);
+        $headQuarters = $query->orderBy('created_at', 'desc')->paginate(15);
 
-        $headOffices = $headOffices->setCollection($headOffices->getCollection()->map(function ($item) {
-            return new HeadOfficeResource($item);
+        $headQuarters = $headQuarters->setCollection($headQuarters->getCollection()->map(function ($item) {
+            return new HeadQuarterResource($item);
         }));
 
         return $this->pagination(
-            paginator: $headOffices,
-            message: __('messages.head_offices_retrieved')
+            paginator: $headQuarters,
+            message: __('messages.head_quarters_retrieved')
         );
     }
 
@@ -56,7 +56,7 @@ class HeadOfficeController extends Controller
         $user = auth()->user();
 
         $validationRules = [
-            'code' => ['required', 'string', 'max:50', 'unique:head_offices,code'],
+            'code' => ['required', 'string', 'max:50', 'unique:head_quarters,code'],
             'name' => ['required', 'string', 'max:255'],
             'province_id' => ['required', 'exists:provinces,id'],
             'city_id' => ['required', 'exists:cities,id'],
@@ -84,23 +84,23 @@ class HeadOfficeController extends Controller
                 ? $request->client_id
                 : $user->getClientId();
 
-            $headOffice = HeadOffice::create(array_merge($request->all(), [
+            $headQuarter = HeadQuarter::create(array_merge($request->all(), [
                 'client_id' => $clientId,
                 'status' => 'active',
             ]));
 
             return $this->created(
-                data: new HeadOfficeResource($headOffice->load(['client', 'province', 'city', 'district', 'subDistrict'])),
-                message: __('messages.head_office_created')
+                data: new HeadQuarterResource($headQuarter->load(['client', 'province', 'city', 'district', 'subDistrict'])),
+                message: __('messages.head_quarter_created')
             );
         } catch (\Exception $e) {
-            Log::error('Head Office creation failed', [
+            Log::error('Head Quarter creation failed', [
                 'error' => $e->getMessage()
             ]);
 
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
-                message: __('messages.head_office_create_error')
+                message: __('messages.head_quarter_create_error')
             );
         }
     }
@@ -109,28 +109,28 @@ class HeadOfficeController extends Controller
     {
         try {
             $user = auth()->user();
-            $headOffice = HeadOffice::with(['client', 'province', 'city', 'district', 'subDistrict'])->findOrFail($id);
+            $headQuarter = HeadQuarter::with(['client', 'province', 'city', 'district', 'subDistrict'])->findOrFail($id);
 
             // Authorization check based on user role
-            if ($user->isHeadOfficeUser()) {
-                // Head Office users can only view their own head office
-                if ($headOffice->id !== $user->getHeadOfficeId()) {
+            if ($user->isHeadQuarterUser()) {
+                // Head Quarter users can only view their own head quarter
+                if ($headQuarter->id !== $user->getHeadQuarterId()) {
                     return $this->forbidden(__('messages.unauthorized_action'));
                 }
             } elseif ($user->isClientUser()) {
-                // Client users can only view head offices under their client
-                if ($headOffice->client_id !== $user->getClientId()) {
+                // Client users can only view head quarters under their client
+                if ($headQuarter->client_id !== $user->getClientId()) {
                     return $this->forbidden(__('messages.unauthorized_action'));
                 }
             }
-            // System Owner can view all head offices (no restriction)
+            // System Owner can view all head quarters (no restriction)
 
             return $this->success(
-                data: new HeadOfficeResource($headOffice),
-                message: __('messages.head_office_retrieved')
+                data: new HeadQuarterResource($headQuarter),
+                message: __('messages.head_quarter_retrieved')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFound(__('messages.head_office_not_found'));
+            return $this->notFound(__('messages.head_quarter_not_found'));
         }
     }
 
@@ -150,23 +150,23 @@ class HeadOfficeController extends Controller
         ]);
 
         try {
-            $headOffice = HeadOffice::findOrFail($id);
-            $headOffice->update($request->all());
+            $headQuarter = HeadQuarter::findOrFail($id);
+            $headQuarter->update($request->all());
 
             return $this->updated(
-                data: new HeadOfficeResource($headOffice->load(['client', 'province', 'city', 'district', 'subDistrict'])),
-                message: __('messages.head_office_updated')
+                data: new HeadQuarterResource($headQuarter->load(['client', 'province', 'city', 'district', 'subDistrict'])),
+                message: __('messages.head_quarter_updated')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFound(__('messages.head_office_not_found'));
+            return $this->notFound(__('messages.head_quarter_not_found'));
         } catch (\Exception $e) {
-            Log::error('Head Office update failed', [
+            Log::error('Head Quarter update failed', [
                 'error' => $e->getMessage()
             ]);
 
             return $this->error(
                 code: ResponseCode::INTERNAL_SERVER_ERROR,
-                message: __('messages.head_office_update_error')
+                message: __('messages.head_quarter_update_error')
             );
         }
     }
@@ -174,16 +174,16 @@ class HeadOfficeController extends Controller
     public function toggleStatus(int $id): JsonResponse
     {
         try {
-            $headOffice = HeadOffice::findOrFail($id);
-            $headOffice->status = $headOffice->status === 'active' ? 'inactive' : 'active';
-            $headOffice->save();
+            $headQuarter = HeadQuarter::findOrFail($id);
+            $headQuarter->status = $headQuarter->status === 'active' ? 'inactive' : 'active';
+            $headQuarter->save();
 
             return $this->success(
-                data: new HeadOfficeResource($headOffice->load(['client', 'province', 'city', 'district', 'subDistrict'])),
-                message: __('messages.head_office_status_updated')
+                data: new HeadQuarterResource($headQuarter->load(['client', 'province', 'city', 'district', 'subDistrict'])),
+                message: __('messages.head_quarter_status_updated')
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->notFound(__('messages.head_office_not_found'));
+            return $this->notFound(__('messages.head_quarter_not_found'));
         }
     }
 }

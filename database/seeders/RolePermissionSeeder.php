@@ -31,7 +31,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'client_finance', 'display_name' => 'Client Finance', 'parent_role' => 'client'],
             ['name' => 'client_operations', 'display_name' => 'Client Operations', 'parent_role' => 'client'],
 
-            ['name' => 'head_office', 'display_name' => 'Head Office', 'parent_role' => null],
+            ['name' => 'head_quarter', 'display_name' => 'Head Quarter', 'parent_role' => null],
 
             ['name' => 'merchant', 'display_name' => 'Merchant', 'parent_role' => null],
         ];
@@ -112,12 +112,12 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'configure_pg_method_mapping', 'display_name' => 'Configure PG Method Mapping', 'category' => 'payment_gateway'],
             ['name' => 'view_pg_fee', 'display_name' => 'View PG Fee', 'category' => 'payment_gateway'],
 
-            ['name' => 'manage_own_head_offices', 'display_name' => 'Manage Own Head Offices', 'category' => 'head_office'],
-            ['name' => 'view_headquarter_accounts', 'display_name' => 'View Headquarter Accounts', 'category' => 'head_office'],
-            ['name' => 'add_headquarter_account', 'display_name' => 'Add Headquarter Account', 'category' => 'head_office'],
-            ['name' => 'update_headquarter_account', 'display_name' => 'Update Headquarter Account', 'category' => 'head_office'],
-            ['name' => 'activate_headquarter_account', 'display_name' => 'Activate Headquarter Account', 'category' => 'head_office'],
-            ['name' => 'deactivate_headquarter_account', 'display_name' => 'Deactivate Headquarter Account', 'category' => 'head_office'],
+            ['name' => 'manage_own_head_quarters', 'display_name' => 'Manage Own Head Quarters', 'category' => 'head_quarter'],
+            ['name' => 'view_headquarter_accounts', 'display_name' => 'View Headquarter Accounts', 'category' => 'head_quarter'],
+            ['name' => 'add_headquarter_account', 'display_name' => 'Add Headquarter Account', 'category' => 'head_quarter'],
+            ['name' => 'update_headquarter_account', 'display_name' => 'Update Headquarter Account', 'category' => 'head_quarter'],
+            ['name' => 'activate_headquarter_account', 'display_name' => 'Activate Headquarter Account', 'category' => 'head_quarter'],
+            ['name' => 'deactivate_headquarter_account', 'display_name' => 'Deactivate Headquarter Account', 'category' => 'head_quarter'],
 
             ['name' => 'manage_own_merchants', 'display_name' => 'Manage Own Merchants', 'category' => 'merchant'],
             ['name' => 'view_merchant_list', 'display_name' => 'View Merchant List', 'category' => 'merchant'],
@@ -210,7 +210,7 @@ class RolePermissionSeeder extends Seeder
         $client = Role::where('name', 'client')->first();
         $client?->syncPermissions([
             // Manage own entities
-            'manage_own_head_offices',
+            'manage_own_head_quarters',
             'manage_own_merchants',
             'manage_own_users',
             'manage_own_api_keys',
@@ -300,9 +300,9 @@ class RolePermissionSeeder extends Seeder
             'update_user_status',
         ]);
 
-        // Head Office - View regional merchant data
-        $headOffice = Role::where('name', 'head_office')->first();
-        $headOffice?->syncPermissions([
+        // Head Quarter - View regional merchant data
+        $headQuarter = Role::where('name', 'head_quarter')->first();
+        $headQuarter?->syncPermissions([
             // Transaction viewing
             'view_merchant_transactions',
             'view_regional_transactions',
@@ -333,8 +333,8 @@ class RolePermissionSeeder extends Seeder
             'manage_own_merchant_users',
         ]);
 
-        // Head Office Admin & Supervisor - Same as head office
-        // Note: head_office_admin and head_office_supervisor roles have been removed
+        // Head Quarter Admin & Supervisor - Same as head quarter
+        // Note: head_quarter_admin and head_quarter_supervisor roles have been removed
 
         // Merchant - View own transactions & request settlement
         $merchant = Role::where('name', 'merchant')->first();

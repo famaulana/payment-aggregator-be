@@ -40,7 +40,7 @@ class UserResource extends JsonResource
                         'client_name' => $this->entity->client_name,
                         'client_code' => $this->entity->client_code,
                     ],
-                    'App\Models\HeadOffice' => [
+                    'App\Models\HeadQuarter' => [
                         'id' => $this->entity->id,
                         'name' => $this->entity->name,
                         'code' => $this->entity->code,
@@ -51,7 +51,7 @@ class UserResource extends JsonResource
                         'merchant_name' => $this->entity->merchant_name,
                         'merchant_code' => $this->entity->merchant_code,
                         'client_id' => $this->entity->client_id,
-                        'head_office_id' => $this->entity->head_office_id,
+                        'head_quarter_id' => $this->entity->head_quarter_id,
                     ],
                     default => null,
                 };

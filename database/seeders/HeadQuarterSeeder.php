@@ -3,11 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\Client;
-use App\Models\HeadOffice;
+use App\Models\HeadQuarter;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class HeadOfficeSeeder extends Seeder
+class HeadQuarterSeeder extends Seeder
 {
     public function run(): void
     {
@@ -31,10 +31,10 @@ class HeadOfficeSeeder extends Seeder
         $client = Client::where('client_code', 'JDP001')->first();
 
         if ($client) {
-            HeadOffice::updateOrCreate(
+            HeadQuarter::updateOrCreate(
                 ['client_id' => $client->id, 'code' => 'HO-JKT'],
                 [
-                    'name' => 'Head Office Jakarta',
+                    'name' => 'Head Quarter Jakarta',
                     'province_id' => $jakarta->id ?? null,
                     'city_id' => $jakartaSelatan->id ?? null,
                     'district_id' => $kebayoranBaru->id ?? null,
@@ -47,10 +47,10 @@ class HeadOfficeSeeder extends Seeder
                 ]
             );
 
-            HeadOffice::updateOrCreate(
+            HeadQuarter::updateOrCreate(
                 ['client_id' => $client->id, 'code' => 'HO-SBY'],
                 [
-                    'name' => 'Head Office Surabaya',
+                    'name' => 'Head Quarter Surabaya',
                     'province_id' => $jawaTimur->id ?? null,
                     'city_id' => $surabaya->id ?? null,
                     'address' => 'Jl. HR. Muhammad No. 123, Surabaya',
@@ -61,10 +61,10 @@ class HeadOfficeSeeder extends Seeder
                 ]
             );
 
-            HeadOffice::updateOrCreate(
+            HeadQuarter::updateOrCreate(
                 ['client_id' => $client->id, 'code' => 'HO-BDG'],
                 [
-                    'name' => 'Head Office Bandung',
+                    'name' => 'Head Quarter Bandung',
                     'province_id' => $jawaBarat->id ?? null,
                     'city_id' => $bandung->id ?? null,
                     'address' => 'Jl. Asia Afrika No. 8, Bandung',

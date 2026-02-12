@@ -15,7 +15,7 @@ class CreateUserRequest extends FormRequest
         return auth()->check() && (
             $user->isSystemOwner() ||
             $user->isClientUser() ||
-            $user->isHeadOfficeUser()
+            $user->isHeadQuarterUser()
         );
     }
 
@@ -36,9 +36,9 @@ class CreateUserRequest extends FormRequest
             $rules['entity_type'] = ['required', 'in:client'];
             $rules['entity_id'] = ['required', 'integer'];
         } elseif ($user->isClientUser()) {
-            $rules['entity_type'] = ['required', 'in:head_office,merchant'];
+            $rules['entity_type'] = ['required', 'in:head_quarter,merchant'];
             $rules['entity_id'] = ['required', 'integer'];
-        } elseif ($user->isHeadOfficeUser()) {
+        } elseif ($user->isHeadQuarterUser()) {
             $rules['entity_type'] = ['required', 'in:merchant'];
             $rules['entity_id'] = ['required', 'integer'];
         }

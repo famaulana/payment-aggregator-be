@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
             'user' => \App\Models\User::class,
             'client' => \App\Models\Client::class,
             'system_owner' => \App\Models\SystemOwner::class,
-            'head_office' => \App\Models\HeadOffice::class,
+            'head_quarter' => \App\Models\HeadQuarter::class,
             'merchant' => \App\Models\Merchant::class,
         ]);
     }

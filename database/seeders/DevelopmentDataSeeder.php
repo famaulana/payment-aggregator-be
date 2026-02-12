@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Client;
-use App\Models\HeadOffice;
+use App\Models\HeadQuarter;
 use App\Models\Merchant;
 use App\Models\SystemOwner;
 use App\Models\User;
@@ -21,7 +21,7 @@ class DevelopmentDataSeeder extends Seeder
     private $districts;
     private $subDistricts;
     private $createdClients = [];
-    private $createdHeadOffices = [];
+    private $createdHeadQuarters = [];
 
     public function __construct()
     {
@@ -49,7 +49,7 @@ class DevelopmentDataSeeder extends Seeder
         $this->command->info('✅ Successfully created 10 clients with their hierarchies!');
         $this->command->info("Total created:");
         $this->command->info("- Clients: " . count($this->createdClients));
-        $this->command->info("- Head Offices: " . count($this->createdHeadOffices));
+        $this->command->info("- Head Quarters: " . count($this->createdHeadQuarters));
     }
 
     private function loadLocationData(): void
@@ -167,10 +167,10 @@ class DevelopmentDataSeeder extends Seeder
             // Create Client User
             $this->createClientUser($client);
 
-            // Create 2-3 Head Offices for this Client
-            $numberOfHO = rand(2, 3);
-            for ($ho = 1; $ho <= $numberOfHO; $ho++) {
-                $this->createHeadOfficeHierarchy($client, $ho);
+            // Create 2-3 Head Quarters for this Client
+            $numberOfHQ = rand(2, 3);
+            for ($hq = 1; $hq <= $numberOfHQ; $hq++) {
+                $this->createHeadQuarterHierarchy($client, $hq);
             }
 
             DB::commit();
@@ -180,15 +180,15 @@ class DevelopmentDataSeeder extends Seeder
         }
     }
 
-    private function createHeadOfficeHierarchy(Client $client, int $index): void
+    private function createHeadQuarterHierarchy(Client $client, int $index): void
     {
         $location = $this->getRandomLocation();
-        $hoCode = $this->generateUniqueHOCode($client);
+        $hqCode = $this->generateUniqueHQCode($client);
 
-        $headOffice = HeadOffice::create([
+        $headQuarter = HeadQuarter::create([
             'client_id' => $client->id,
-            'code' => $hoCode,
-            'name' => $this->faker->unique()->company . ' - Head Office ' . $this->faker->city,
+            'code' => $hqCode,
+            'name' => $this->faker->unique()->company . ' - Head Quarter ' . $this->faker->city,
             'province_id' => $location['province_id'],
             'city_id' => $location['city_id'],
             'district_id' => $location['district_id'],
@@ -200,27 +200,27 @@ class DevelopmentDataSeeder extends Seeder
             'status' => $this->faker->randomElement(['active', 'inactive']),
         ]);
 
-        $this->createdHeadOffices[] = $headOffice;
-        $this->command->info("  ✓ Created Head Office: {$headOffice->name} ({$headOffice->code})");
+        $this->createdHeadQuarters[] = $headQuarter;
+        $this->command->info("  ✓ Created Head Quarter: {$headQuarter->name} ({$headQuarter->code})");
 
-        // Create Head Office User
-        $this->createHeadOfficeUser($headOffice);
+        // Create Head Quarter User
+        $this->createHeadQuarterUser($headQuarter);
 
-        // Create 2-3 Merchants for this Head Office
+        // Create 2-3 Merchants for this Head Quarter
         $numberOfMerchants = rand(2, 3);
         for ($m = 1; $m <= $numberOfMerchants; $m++) {
-            $this->createMerchant($client, $headOffice, $m);
+            $this->createMerchant($client, $headQuarter, $m);
         }
     }
 
-    private function createMerchant(Client $client, HeadOffice $headOffice, int $index): void
+    private function createMerchant(Client $client, HeadQuarter $headQuarter, int $index): void
     {
         $location = $this->getRandomLocation();
         $merchantCode = $this->generateUniqueMerchantCode($client);
 
         $merchant = Merchant::create([
             'client_id' => $client->id,
-            'head_office_id' => $headOffice->id,
+            'head_quarter_id' => $headQuarter->id,
             'merchant_code' => $merchantCode,
             'merchant_name' => $this->faker->unique()->company . ' - ' . $this->faker->randomElement([
                 'Outlet',
@@ -266,24 +266,24 @@ class DevelopmentDataSeeder extends Seeder
         $this->command->info("  → Created Client User: {$user->email}");
     }
 
-    private function createHeadOfficeUser(HeadOffice $headOffice): void
+    private function createHeadQuarterUser(HeadQuarter $headQuarter): void
     {
-        $email = $this->generateUniqueEmail('ho');
-        $username = $this->generateUniqueUsername('ho');
+        $email = $this->generateUniqueEmail('hq');
+        $username = $this->generateUniqueUsername('hq');
 
         $user = User::create([
             'username' => $username,
             'email' => $email,
-            'full_name' => $this->faker->name . ' (HO Admin)',
+            'full_name' => $this->faker->name . ' (HQ Admin)',
             'password' => Hash::make('password123'),
             'status' => 'active',
             'email_verified_at' => now(),
-            'entity_type' => HeadOffice::class,
-            'entity_id' => $headOffice->id,
+            'entity_type' => HeadQuarter::class,
+            'entity_id' => $headQuarter->id,
         ]);
 
-        $user->assignSingleRole('head_office');
-        $this->command->info("    → Created Head Office User: {$user->email}");
+        $user->assignSingleRole('head_quarter');
+        $this->command->info("    → Created Head Quarter User: {$user->email}");
     }
 
     private function createMerchantUser(Merchant $merchant): void
@@ -315,13 +315,13 @@ class DevelopmentDataSeeder extends Seeder
         return $code;
     }
 
-    private function generateUniqueHOCode(Client $client): string
+    private function generateUniqueHQCode(Client $client): string
     {
-        $counter = HeadOffice::where('client_id', $client->id)->count() + 1;
+        $counter = HeadQuarter::where('client_id', $client->id)->count() + 1;
         do {
             $code = 'HO-' . strtoupper(substr($client->client_code, -3)) . '-' . str_pad($counter, 3, '0', STR_PAD_LEFT);
             $counter++;
-        } while (HeadOffice::where('code', $code)->exists());
+        } while (HeadQuarter::where('code', $code)->exists());
 
         return $code;
     }

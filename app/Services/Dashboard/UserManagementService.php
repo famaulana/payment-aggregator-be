@@ -4,7 +4,7 @@ namespace App\Services\Dashboard;
 
 use App\Models\User;
 use App\Models\Client;
-use App\Models\HeadOffice;
+use App\Models\HeadQuarter;
 use App\Models\Merchant;
 use App\Services\Shared\AuditTrailService;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -28,8 +28,8 @@ class UserManagementService
         'client_operations',
     ];
 
-    private const HEAD_OFFICE_ROLES = [
-        'head_office',
+    private const HEAD_QUARTER_ROLES = [
+        'head_quarter',
     ];
 
     private const MERCHANT_ROLES = [
@@ -52,20 +52,20 @@ class UserManagementService
         } elseif ($currentUser->isClientUser()) {
             $clientId = $currentUser->getClientId();
 
-            // Get IDs for head offices and merchants belonging to this client
-            $headOfficeIds = HeadOffice::where('client_id', $clientId)->pluck('id');
+            // Get IDs for head quarters and merchants belonging to this client
+            $headQuarterIds = HeadQuarter::where('client_id', $clientId)->pluck('id');
             $merchantIds = Merchant::where('client_id', $clientId)->pluck('id');
 
-            $query->where(function ($q) use ($clientId, $headOfficeIds, $merchantIds) {
+            $query->where(function ($q) use ($clientId, $headQuarterIds, $merchantIds) {
                 // Users directly under the client
                 $q->where(function ($subQuery) use ($clientId) {
                     $subQuery->where('entity_type', Client::class)
                         ->where('entity_id', $clientId);
                 })
-                // Users under head offices owned by this client
-                ->orWhere(function ($subQuery) use ($headOfficeIds) {
-                    $subQuery->where('entity_type', HeadOffice::class)
-                        ->whereIn('entity_id', $headOfficeIds);
+                // Users under head quarters owned by this client
+                ->orWhere(function ($subQuery) use ($headQuarterIds) {
+                    $subQuery->where('entity_type', HeadQuarter::class)
+                        ->whereIn('entity_id', $headQuarterIds);
                 })
                 // Users under merchants owned by this client
                 ->orWhere(function ($subQuery) use ($merchantIds) {
@@ -73,19 +73,19 @@ class UserManagementService
                         ->whereIn('entity_id', $merchantIds);
                 });
             });
-        } elseif ($currentUser->isHeadOfficeUser()) {
-            $headOfficeId = $currentUser->getHeadOfficeId();
+        } elseif ($currentUser->isHeadQuarterUser()) {
+            $headQuarterId = $currentUser->getHeadQuarterId();
 
-            // Get IDs for merchants belonging to this head office
-            $merchantIds = Merchant::where('head_office_id', $headOfficeId)->pluck('id');
+            // Get IDs for merchants belonging to this head quarter
+            $merchantIds = Merchant::where('head_quarter_id', $headQuarterId)->pluck('id');
 
-            $query->where(function ($q) use ($headOfficeId, $merchantIds) {
-                // Users directly under this head office
-                $q->where(function ($subQuery) use ($headOfficeId) {
-                    $subQuery->where('entity_type', HeadOffice::class)
-                        ->where('entity_id', $headOfficeId);
+            $query->where(function ($q) use ($headQuarterId, $merchantIds) {
+                // Users directly under this head quarter
+                $q->where(function ($subQuery) use ($headQuarterId) {
+                    $subQuery->where('entity_type', HeadQuarter::class)
+                        ->where('entity_id', $headQuarterId);
                 })
-                // Users under merchants owned by this head office
+                // Users under merchants owned by this head quarter
                 ->orWhere(function ($subQuery) use ($merchantIds) {
                     $subQuery->where('entity_type', Merchant::class)
                         ->whereIn('entity_id', $merchantIds);
@@ -192,8 +192,8 @@ class UserManagementService
                     'kyb_status' => 'not_required',
                     'status' => 'active',
                 ]));
-            } elseif ($entityType === 'head_office') {
-                $entity = HeadOffice::create(array_merge($entityData, [
+            } elseif ($entityType === 'head_quarter') {
+                $entity = HeadQuarter::create(array_merge($entityData, [
                     'client_id' => $currentUser->getClientId(),
                     'status' => 'active',
                 ]));
@@ -359,35 +359,35 @@ class UserManagementService
                 throw new \Exception(__('messages.entity_type_must_be_client'));
             }
         } elseif ($currentUser->isClientUser()) {
-            if (!in_array($role, array_merge(self::HEAD_OFFICE_ROLES, self::MERCHANT_ROLES))) {
-                throw new \Exception(__('messages.client_can_only_create_head_office_or_merchant_users'));
+            if (!in_array($role, array_merge(self::HEAD_QUARTER_ROLES, self::MERCHANT_ROLES))) {
+                throw new \Exception(__('messages.client_can_only_create_head_quarter_or_merchant_users'));
             }
 
             $clientId = $currentUser->getClientId();
             $entityClass = $this->resolveEntityClass($entityType);
             $entity = $this->getEntity($entityClass, $entityId);
 
-            if ($entityType === 'head_office' && $entity->client_id !== $clientId) {
-                throw new \Exception(__('messages.head_office_must_belong_to_your_client'));
+            if ($entityType === 'head_quarter' && $entity->client_id !== $clientId) {
+                throw new \Exception(__('messages.head_quarter_must_belong_to_your_client'));
             }
 
             if ($entityType === 'merchant' && $entity->client_id !== $clientId) {
                 throw new \Exception(__('messages.merchant_must_belong_to_your_client'));
             }
-        } elseif ($currentUser->isHeadOfficeUser()) {
+        } elseif ($currentUser->isHeadQuarterUser()) {
             if (!in_array($role, self::MERCHANT_ROLES)) {
-                throw new \Exception(__('messages.head_office_can_only_create_merchant_users'));
+                throw new \Exception(__('messages.head_quarter_can_only_create_merchant_users'));
             }
 
             if ($entityType !== 'merchant') {
                 throw new \Exception(__('messages.entity_type_must_be_merchant'));
             }
 
-            $headOfficeId = $currentUser->getHeadOfficeId();
+            $headQuarterId = $currentUser->getHeadQuarterId();
             $entity = Merchant::findOrFail($entityId);
 
-            if ($entity->head_office_id !== $headOfficeId) {
-                throw new \Exception(__('messages.merchant_must_belong_to_your_head_office'));
+            if ($entity->head_quarter_id !== $headQuarterId) {
+                throw new \Exception(__('messages.merchant_must_belong_to_your_head_quarter'));
             }
         }
     }
@@ -403,9 +403,9 @@ class UserManagementService
             return $targetUser->getClientId() === $clientId;
         }
 
-        if ($currentUser->isHeadOfficeUser()) {
-            $headOfficeId = $currentUser->getHeadOfficeId();
-            return $targetUser->getHeadOfficeId() === $headOfficeId;
+        if ($currentUser->isHeadQuarterUser()) {
+            $headQuarterId = $currentUser->getHeadQuarterId();
+            return $targetUser->getHeadQuarterId() === $headQuarterId;
         }
 
         return false;
@@ -415,7 +415,7 @@ class UserManagementService
     {
         return match($entityType) {
             'client' => Client::class,
-            'head_office' => HeadOffice::class,
+            'head_quarter' => HeadQuarter::class,
             'merchant' => Merchant::class,
             default => throw new \Exception(__('messages.invalid_entity_type')),
         };

@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class HeadOffice extends Model
+class HeadQuarter extends Model
 {
     use HasFactory;
+
+    protected $table = 'head_quarters';
 
     protected $fillable = [
         'client_id',
@@ -56,12 +58,12 @@ class HeadOffice extends Model
 
     public function merchants()
     {
-        return $this->hasMany(Merchant::class);
+        return $this->hasMany(Merchant::class, 'head_quarter_id');
     }
 
     public function transactions()
     {
-        return $this->hasMany(Transaction::class);
+        return $this->hasMany(Transaction::class, 'head_quarter_id');
     }
 
     public function users()

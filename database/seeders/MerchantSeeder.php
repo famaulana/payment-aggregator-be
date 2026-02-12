@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Client;
-use App\Models\HeadOffice;
+use App\Models\HeadQuarter;
 use App\Models\Merchant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -32,15 +32,15 @@ class MerchantSeeder extends Seeder
         $client = Client::where('client_code', 'JDP001')->first();
 
         if ($client) {
-            $hoJkt = HeadOffice::where('client_id', $client->id)->where('code', 'HO-JKT')->first();
-            $hoSby = HeadOffice::where('client_id', $client->id)->where('code', 'HO-SBY')->first();
-            $hoBdg = HeadOffice::where('client_id', $client->id)->where('code', 'HO-BDG')->first();
+            $hqJkt = HeadQuarter::where('client_id', $client->id)->where('code', 'HO-JKT')->first();
+            $hqSby = HeadQuarter::where('client_id', $client->id)->where('code', 'HO-SBY')->first();
+            $hqBdg = HeadQuarter::where('client_id', $client->id)->where('code', 'HO-BDG')->first();
 
-            if ($hoJkt) {
+            if ($hqJkt) {
                 Merchant::updateOrCreate(
                     ['client_id' => $client->id, 'merchant_code' => 'MER-JKT-001'],
                     [
-                        'head_office_id' => $hoJkt->id,
+                        'head_quarter_id' => $hqJkt->id,
                         'merchant_name' => 'Toko Maju Jaya - Kebayoran',
                         'province_id' => $jakarta->id ?? null,
                         'city_id' => $jakartaSelatan->id ?? null,
@@ -57,7 +57,7 @@ class MerchantSeeder extends Seeder
                 Merchant::updateOrCreate(
                     ['client_id' => $client->id, 'merchant_code' => 'MER-JKT-002'],
                     [
-                        'head_office_id' => $hoJkt->id,
+                        'head_quarter_id' => $hqJkt->id,
                         'merchant_name' => 'Warung Sejahtera - Senopati',
                         'province_id' => $jakarta->id ?? null,
                         'city_id' => $jakartaSelatan->id ?? null,
@@ -71,11 +71,11 @@ class MerchantSeeder extends Seeder
                 );
             }
 
-            if ($hoSby) {
+            if ($hqSby) {
                 Merchant::updateOrCreate(
                     ['client_id' => $client->id, 'merchant_code' => 'MER-SBY-001'],
                     [
-                        'head_office_id' => $hoSby->id,
+                        'head_quarter_id' => $hqSby->id,
                         'merchant_name' => 'Toko Berkah Surabaya',
                         'province_id' => $jawaTimur->id ?? null,
                         'city_id' => $surabaya->id ?? null,
@@ -88,11 +88,11 @@ class MerchantSeeder extends Seeder
                 );
             }
 
-            if ($hoBdg) {
+            if ($hqBdg) {
                 Merchant::updateOrCreate(
                     ['client_id' => $client->id, 'merchant_code' => 'MER-BDG-001'],
                     [
-                        'head_office_id' => $hoBdg->id,
+                        'head_quarter_id' => $hqBdg->id,
                         'merchant_name' => 'Toko Jaya Bandung',
                         'province_id' => $jawaBarat->id ?? null,
                         'city_id' => $bandung->id ?? null,

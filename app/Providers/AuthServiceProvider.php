@@ -36,7 +36,7 @@ class AuthServiceProvider extends ServiceProvider
         Passport::tokensCan([
             'system-owner' => 'System Owner Access',
             'client' => 'Client Access',
-            'head-office' => 'Head Office Access',
+            'head-quarter' => 'Head Quarter Access',
             'merchant' => 'Merchant Access',
             'check-status' => 'Check transaction status',
             'webhook' => 'Webhook access',

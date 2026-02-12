@@ -72,9 +72,9 @@ class User extends Authenticatable
         return $this->belongsTo(Client::class);
     }
 
-    public function headOffice()
+    public function headQuarter()
     {
-        return $this->belongsTo(HeadOffice::class);
+        return $this->belongsTo(HeadQuarter::class);
     }
 
     public function merchant()
@@ -198,10 +198,10 @@ class User extends Authenticatable
             ->where('entity_id', $clientId);
     }
 
-    public function scopeHeadOfficeUsers($query, $headOfficeId)
+    public function scopeHeadQuarterUsers($query, $headQuarterId)
     {
-        return $query->where('entity_type', HeadOffice::class)
-            ->where('entity_id', $headOfficeId);
+        return $query->where('entity_type', HeadQuarter::class)
+            ->where('entity_id', $headQuarterId);
     }
 
     public function scopeMerchantUsers($query, $merchantId)
@@ -258,10 +258,10 @@ class User extends Authenticatable
             || $this->hasRole('client_operations');
     }
 
-    public function isHeadOfficeUser(): bool
+    public function isHeadQuarterUser(): bool
     {
-        return $this->entity_type === HeadOffice::class
-            || $this->hasExactRole('head_office');
+        return $this->entity_type === HeadQuarter::class
+            || $this->hasExactRole('head_quarter');
     }
 
     public function isMerchantUser(): bool
@@ -334,7 +334,7 @@ class User extends Authenticatable
             if ($this->entity_type === Client::class) {
                 return $this->entity_id === $entityId;
             }
-            if ($this->entity_type === HeadOffice::class && $userEntity) {
+            if ($this->entity_type === HeadQuarter::class && $userEntity) {
                 return $userEntity->client_id === $entityId;
             }
             if ($this->entity_type === Merchant::class && $userEntity) {
@@ -342,20 +342,20 @@ class User extends Authenticatable
             }
         }
 
-        if ($entityType === 'head_office') {
+        if ($entityType === 'head_quarter') {
             if ($this->entity_type === SystemOwner::class) {
                 return true;
             }
             if ($this->entity_type === Client::class && $userEntity) {
-                return \App\Models\HeadOffice::where('client_id', $userEntity->id)
+                return \App\Models\HeadQuarter::where('client_id', $userEntity->id)
                     ->where('id', $entityId)
                     ->exists();
             }
-            if ($this->entity_type === HeadOffice::class) {
+            if ($this->entity_type === HeadQuarter::class) {
                 return $this->entity_id === $entityId;
             }
             if ($this->entity_type === Merchant::class && $userEntity) {
-                return $userEntity->head_office_id === $entityId;
+                return $userEntity->head_quarter_id === $entityId;
             }
         }
 
@@ -368,8 +368,8 @@ class User extends Authenticatable
                     ->where('id', $entityId)
                     ->exists();
             }
-            if ($this->entity_type === HeadOffice::class && $userEntity) {
-                return \App\Models\Merchant::where('head_office_id', $userEntity->id)
+            if ($this->entity_type === HeadQuarter::class && $userEntity) {
+                return \App\Models\Merchant::where('head_quarter_id', $userEntity->id)
                     ->where('id', $entityId)
                     ->exists();
             }
@@ -389,8 +389,8 @@ class User extends Authenticatable
         if ($this->entity_type === Client::class) {
             return 'Client';
         }
-        if ($this->entity_type === HeadOffice::class) {
-            return 'Head Office';
+        if ($this->entity_type === HeadQuarter::class) {
+            return 'Head Quarter';
         }
         if ($this->entity_type === Merchant::class) {
             return 'Merchant';
@@ -413,7 +413,7 @@ class User extends Authenticatable
         if ($entity instanceof Client) {
             return $entity->client_name;
         }
-        if ($entity instanceof HeadOffice) {
+        if ($entity instanceof HeadQuarter) {
             return $entity->name;
         }
         if ($entity instanceof Merchant) {
@@ -433,7 +433,7 @@ class User extends Authenticatable
         if ($entity instanceof Client) {
             return $entity->id;
         }
-        if ($entity instanceof HeadOffice) {
+        if ($entity instanceof HeadQuarter) {
             return $entity->client_id;
         }
         if ($entity instanceof Merchant) {
@@ -443,15 +443,15 @@ class User extends Authenticatable
         return null;
     }
 
-    public function getHeadOfficeId(): ?int
+    public function getHeadQuarterId(): ?int
     {
         $entity = $this->entity;
 
-        if ($entity instanceof HeadOffice) {
+        if ($entity instanceof HeadQuarter) {
             return $entity->id;
         }
         if ($entity instanceof Merchant) {
-            return $entity->head_office_id;
+            return $entity->head_quarter_id;
         }
 
         return null;

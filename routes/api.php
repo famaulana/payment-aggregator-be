@@ -5,7 +5,7 @@ use App\Http\Controllers\Dashboard\ApiKeyController;
 use App\Http\Controllers\Dashboard\AuditLogController;
 use App\Http\Controllers\Dashboard\UserController;
 use App\Http\Controllers\Dashboard\ClientController;
-use App\Http\Controllers\Dashboard\HeadOfficeController;
+use App\Http\Controllers\Dashboard\HeadQuarterController;
 use App\Http\Controllers\Dashboard\MerchantController;
 use App\Http\Controllers\Dashboard\LocationController;
 use App\Http\Controllers\Api\AuthController as ApiAuthController;
@@ -43,7 +43,7 @@ Route::prefix('v1')->group(function () {
                 Route::get('/{id}', [AuditLogController::class, 'show']);
             });
 
-            Route::middleware(['role:system_owner|system_owner_admin|client|client_admin|head_office'])->prefix('users')->group(function () {
+            Route::middleware(['role:system_owner|system_owner_admin|client|client_admin|head_quarter'])->prefix('users')->group(function () {
                 Route::get('/', [UserController::class, 'index']);
                 Route::post('/', [UserController::class, 'store']);
                 Route::post('/with-entity', [UserController::class, 'storeWithEntity']);
@@ -68,24 +68,24 @@ Route::prefix('v1')->group(function () {
                 });
             });
 
-            Route::prefix('head-offices')->group(function () {
+            Route::prefix('head-quarters')->group(function () {
                 // System Owner and Client can list, create, update, toggle
                 Route::middleware(['role:system_owner|system_owner_admin|client|client_admin'])->group(function () {
-                    Route::get('/', [HeadOfficeController::class, 'index']);
-                    Route::post('/', [HeadOfficeController::class, 'store']);
-                    Route::put('/{id}', [HeadOfficeController::class, 'update']);
-                    Route::post('/{id}/toggle-status', [HeadOfficeController::class, 'toggleStatus']);
+                    Route::get('/', [HeadQuarterController::class, 'index']);
+                    Route::post('/', [HeadQuarterController::class, 'store']);
+                    Route::put('/{id}', [HeadQuarterController::class, 'update']);
+                    Route::post('/{id}/toggle-status', [HeadQuarterController::class, 'toggleStatus']);
                 });
 
-                // System Owner, Client, and Head Office can view details (with access control)
-                Route::middleware(['role:system_owner|system_owner_admin|client|client_admin|head_office'])->group(function () {
-                    Route::get('/{id}', [HeadOfficeController::class, 'show']);
+                // System Owner, Client, and Head Quarter can view details (with access control)
+                Route::middleware(['role:system_owner|system_owner_admin|client|client_admin|head_quarter'])->group(function () {
+                    Route::get('/{id}', [HeadQuarterController::class, 'show']);
                 });
             });
 
             Route::prefix('merchants')->group(function () {
-                // System Owner, Client, and Head Office can list, create, update, toggle
-                Route::middleware(['role:system_owner|system_owner_admin|client|client_admin|head_office'])->group(function () {
+                // System Owner, Client, and Head Quarter can list, create, update, toggle
+                Route::middleware(['role:system_owner|system_owner_admin|client|client_admin|head_quarter'])->group(function () {
                     Route::get('/', [MerchantController::class, 'index']);
                     Route::post('/', [MerchantController::class, 'store']);
                     Route::put('/{id}', [MerchantController::class, 'update']);
@@ -93,7 +93,7 @@ Route::prefix('v1')->group(function () {
                 });
 
                 // All roles can view merchant details (with access control)
-                Route::middleware(['role:system_owner|system_owner_admin|client|client_admin|head_office|merchant'])->group(function () {
+                Route::middleware(['role:system_owner|system_owner_admin|client|client_admin|head_quarter|merchant'])->group(function () {
                     Route::get('/{id}', [MerchantController::class, 'show']);
                 });
             });

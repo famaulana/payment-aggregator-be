@@ -11,7 +11,7 @@ class Merchant extends Model
 
     protected $fillable = [
         'client_id',
-        'head_office_id',
+        'head_quarter_id',
         'merchant_code',
         'merchant_name',
         'province_id',
@@ -37,9 +37,9 @@ class Merchant extends Model
         return $this->belongsTo(Client::class);
     }
 
-    public function headOffice()
+    public function headQuarter()
     {
-        return $this->belongsTo(HeadOffice::class);
+        return $this->belongsTo(HeadQuarter::class);
     }
 
     public function province()

@@ -14,7 +14,7 @@ class Transaction extends Model
     protected $fillable = [
         'client_id',
         'merchant_id',
-        'head_office_id',
+        'head_quarter_id',
         'transaction_id',
         'pg_reference_id',
         'pos_reference_id',
@@ -74,9 +74,9 @@ class Transaction extends Model
         return $this->belongsTo(Merchant::class);
     }
 
-    public function headOffice()
+    public function headQuarter()
     {
-        return $this->belongsTo(HeadOffice::class);
+        return $this->belongsTo(HeadQuarter::class);
     }
 
     public function paymentMethod()

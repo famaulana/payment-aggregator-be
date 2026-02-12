@@ -170,13 +170,13 @@ return [
     'cannot_create_system_owner' => 'Tidak dapat membuat pengguna system owner',
     'cannot_assign_system_owner_role' => 'Tidak dapat memberikan role system owner',
     'system_owner_can_only_create_client_users' => 'System owner hanya dapat membuat pengguna klien',
-    'client_can_only_create_head_office_or_merchant_users' => 'Klien hanya dapat membuat pengguna head office atau merchant',
-    'head_office_can_only_create_merchant_users' => 'Head office hanya dapat membuat pengguna merchant',
+    'client_can_only_create_head_quarter_or_merchant_users' => 'Klien hanya dapat membuat pengguna head quarter atau merchant',
+    'head_quarter_can_only_create_merchant_users' => 'Head quarter hanya dapat membuat pengguna merchant',
     'entity_type_must_be_client' => 'Tipe entitas harus klien',
     'entity_type_must_be_merchant' => 'Tipe entitas harus merchant',
-    'head_office_must_belong_to_your_client' => 'Head office harus milik klien Anda',
+    'head_quarter_must_belong_to_your_client' => 'Head quarter harus milik klien Anda',
     'merchant_must_belong_to_your_client' => 'Merchant harus milik klien Anda',
-    'merchant_must_belong_to_your_head_office' => 'Merchant harus milik head office Anda',
+    'merchant_must_belong_to_your_head_quarter' => 'Merchant harus milik head quarter Anda',
     'invalid_entity_type' => 'Tipe entitas tidak valid',
     'failed_to_create_entity' => 'Gagal membuat entitas',
 
@@ -195,17 +195,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Head Office Management (Dashboard)
+    | Head Quarter Management (Dashboard)
     |--------------------------------------------------------------------------
     */
-    'head_offices_retrieved' => 'Head office berhasil diambil',
-    'head_office_retrieved' => 'Head office berhasil diambil',
-    'head_office_created' => 'Head office berhasil dibuat',
-    'head_office_updated' => 'Head office berhasil diperbarui',
-    'head_office_status_updated' => 'Status head office berhasil diperbarui',
-    'head_office_not_found' => 'Head office tidak ditemukan',
-    'head_office_create_error' => 'Gagal membuat head office',
-    'head_office_update_error' => 'Gagal memperbarui head office',
+    'head_quarters_retrieved' => 'Head quarter berhasil diambil',
+    'head_quarter_retrieved' => 'Head quarter berhasil diambil',
+    'head_quarter_created' => 'Head quarter berhasil dibuat',
+    'head_quarter_updated' => 'Head quarter berhasil diperbarui',
+    'head_quarter_status_updated' => 'Status head quarter berhasil diperbarui',
+    'head_quarter_not_found' => 'Head quarter tidak ditemukan',
+    'head_quarter_create_error' => 'Gagal membuat head quarter',
+    'head_quarter_update_error' => 'Gagal memperbarui head quarter',
 
     /*
     |--------------------------------------------------------------------------

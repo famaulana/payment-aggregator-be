@@ -170,13 +170,13 @@ return [
     'cannot_create_system_owner' => 'Cannot create system owner users',
     'cannot_assign_system_owner_role' => 'Cannot assign system owner role',
     'system_owner_can_only_create_client_users' => 'System owner can only create client users',
-    'client_can_only_create_head_office_or_merchant_users' => 'Client can only create head office or merchant users',
-    'head_office_can_only_create_merchant_users' => 'Head office can only create merchant users',
+    'client_can_only_create_head_quarter_or_merchant_users' => 'Client can only create head quarter or merchant users',
+    'head_quarter_can_only_create_merchant_users' => 'Head quarter can only create merchant users',
     'entity_type_must_be_client' => 'Entity type must be client',
     'entity_type_must_be_merchant' => 'Entity type must be merchant',
-    'head_office_must_belong_to_your_client' => 'Head office must belong to your client',
+    'head_quarter_must_belong_to_your_client' => 'Head quarter must belong to your client',
     'merchant_must_belong_to_your_client' => 'Merchant must belong to your client',
-    'merchant_must_belong_to_your_head_office' => 'Merchant must belong to your head office',
+    'merchant_must_belong_to_your_head_quarter' => 'Merchant must belong to your head quarter',
     'invalid_entity_type' => 'Invalid entity type',
     'failed_to_create_entity' => 'Failed to create entity',
 
@@ -195,17 +195,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Head Office Management (Dashboard)
+    | Head Quarter Management (Dashboard)
     |--------------------------------------------------------------------------
     */
-    'head_offices_retrieved' => 'Head offices retrieved successfully',
-    'head_office_retrieved' => 'Head office retrieved successfully',
-    'head_office_created' => 'Head office created successfully',
-    'head_office_updated' => 'Head office updated successfully',
-    'head_office_status_updated' => 'Head office status updated successfully',
-    'head_office_not_found' => 'Head office not found',
-    'head_office_create_error' => 'Failed to create head office',
-    'head_office_update_error' => 'Failed to update head office',
+    'head_quarters_retrieved' => 'Head quarters retrieved successfully',
+    'head_quarter_retrieved' => 'Head quarter retrieved successfully',
+    'head_quarter_created' => 'Head quarter created successfully',
+    'head_quarter_updated' => 'Head quarter updated successfully',
+    'head_quarter_status_updated' => 'Head quarter status updated successfully',
+    'head_quarter_not_found' => 'Head quarter not found',
+    'head_quarter_create_error' => 'Failed to create head quarter',
+    'head_quarter_update_error' => 'Failed to update head quarter',
 
     /*
     |--------------------------------------------------------------------------

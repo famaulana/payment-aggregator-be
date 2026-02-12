@@ -15,7 +15,7 @@ class CreateUserWithEntityRequest extends FormRequest
         return auth()->check() && (
             $user->isSystemOwner() ||
             $user->isClientUser() ||
-            $user->isHeadOfficeUser()
+            $user->isHeadQuarterUser()
         );
     }
 
@@ -37,14 +37,14 @@ class CreateUserWithEntityRequest extends FormRequest
             $rules['entity_type'] = ['required', 'in:client'];
             $rules = array_merge($rules, $this->getClientRules());
         } elseif ($user->isClientUser()) {
-            $rules['entity_type'] = ['required', 'in:head_office,merchant'];
+            $rules['entity_type'] = ['required', 'in:head_quarter,merchant'];
 
-            if ($entityType === 'head_office') {
-                $rules = array_merge($rules, $this->getHeadOfficeRules());
+            if ($entityType === 'head_quarter') {
+                $rules = array_merge($rules, $this->getHeadQuarterRules());
             } elseif ($entityType === 'merchant') {
                 $rules = array_merge($rules, $this->getMerchantRules());
             }
-        } elseif ($user->isHeadOfficeUser()) {
+        } elseif ($user->isHeadQuarterUser()) {
             $rules['entity_type'] = ['required', 'in:merchant'];
             $rules = array_merge($rules, $this->getMerchantRules());
         }
@@ -75,11 +75,11 @@ class CreateUserWithEntityRequest extends FormRequest
         ];
     }
 
-    private function getHeadOfficeRules(): array
+    private function getHeadQuarterRules(): array
     {
         return [
-            'head_office_code' => ['required', 'string', 'max:50'],
-            'head_office_name' => ['required', 'string', 'max:255'],
+            'head_quarter_code' => ['required', 'string', 'max:50'],
+            'head_quarter_name' => ['required', 'string', 'max:255'],
             'province_id' => ['required', 'exists:provinces,id'],
             'city_id' => ['required', 'exists:cities,id'],
             'district_id' => ['nullable', 'exists:districts,id'],
@@ -110,7 +110,7 @@ class CreateUserWithEntityRequest extends FormRequest
         ];
 
         if ($user->isClientUser()) {
-            $rules['head_office_id'] = ['nullable', 'exists:head_offices,id'];
+            $rules['head_quarter_id'] = ['nullable', 'exists:head_quarters,id'];
         }
 
         return $rules;

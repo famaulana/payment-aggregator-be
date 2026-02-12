@@ -15,7 +15,7 @@ class UpdateUserRequest extends FormRequest
         return auth()->check() && (
             $user->isSystemOwner() ||
             $user->isClientUser() ||
-            $user->isHeadOfficeUser()
+            $user->isHeadQuarterUser()
         );
     }
 

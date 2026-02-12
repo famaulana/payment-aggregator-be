@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('merchants', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->foreignId('head_office_id')->nullable()->constrained()->onDelete('set null')->comment('Can be NULL if merchant directly under client');
+            $table->foreignId('head_quarter_id')->nullable()->constrained('head_quarters')->onDelete('set null')->comment('Can be NULL if merchant directly under client');
             $table->string('merchant_code', 50)->comment('Internal merchant code');
             $table->string('merchant_name', 255);
             $table->foreignId('province_id')->constrained()->onDelete('cascade');

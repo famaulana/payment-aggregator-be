@@ -131,10 +131,10 @@ class UserController extends Controller
                 'address' => $request->address,
                 'postal_code' => $request->postal_code,
             ];
-        } elseif ($entityType === 'head_office') {
+        } elseif ($entityType === 'head_quarter') {
             return [
-                'code' => $request->head_office_code,
-                'name' => $request->head_office_name,
+                'code' => $request->head_quarter_code,
+                'name' => $request->head_quarter_name,
                 'province_id' => $request->province_id,
                 'city_id' => $request->city_id,
                 'district_id' => $request->district_id,
@@ -148,7 +148,7 @@ class UserController extends Controller
             return [
                 'merchant_code' => $request->merchant_code,
                 'merchant_name' => $request->merchant_name,
-                'head_office_id' => $request->head_office_id,
+                'head_quarter_id' => $request->head_quarter_id,
                 'province_id' => $request->province_id,
                 'city_id' => $request->city_id,
                 'district_id' => $request->district_id,

@@ -11,7 +11,7 @@ class MerchantResource extends JsonResource
         return [
             'id' => $this->id,
             'client_id' => $this->client_id,
-            'head_office_id' => $this->head_office_id,
+            'head_quarter_id' => $this->head_quarter_id,
             'merchant_code' => $this->merchant_code,
             'merchant_name' => $this->merchant_name,
             'province_id' => $this->province_id,
@@ -35,11 +35,11 @@ class MerchantResource extends JsonResource
                 ];
             }),
 
-            'head_office' => $this->whenLoaded('headOffice', function () {
-                return $this->headOffice ? [
-                    'id' => $this->headOffice->id,
-                    'name' => $this->headOffice->name,
-                    'code' => $this->headOffice->code,
+            'head_quarter' => $this->whenLoaded('headQuarter', function () {
+                return $this->headQuarter ? [
+                    'id' => $this->headQuarter->id,
+                    'name' => $this->headQuarter->name,
+                    'code' => $this->headQuarter->code,
                 ] : null;
             }),
 

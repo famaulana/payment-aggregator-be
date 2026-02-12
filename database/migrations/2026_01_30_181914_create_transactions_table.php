@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->foreignId('merchant_id')->constrained()->onDelete('cascade');
-            $table->foreignId('head_office_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('head_quarter_id')->nullable()->constrained('head_quarters')->onDelete('set null');
             $table->string('transaction_id', 100)->unique()->comment('Internal transaction ID');
             $table->string('pg_reference_id', 100)->nullable()->comment('Reference ID from Payment Gateway');
             $table->string('pos_reference_id', 100)->nullable()->comment('Reference ID from POS/Ticketing system');

@@ -125,7 +125,7 @@ PASSPORT_API_SERVER_CLIENT_SECRET=<generated-secret>
 | superadmin@jdp.co.id | SuperAdmin123! | System Owner (Super Admin) |
 | system-owner@jdp.co.id | password123 | System Owner Admin |
 | client@jdp.co.id | password123 | Client Admin |
-| ho-jakarta@jdp.co.id | password123 | Head Office Admin |
+| hq-jakarta@jdp.co.id | password123 | Head Quarter Admin |
 | merchant-001@jdp.co.id | password123 | Merchant Admin |
 
 ## Available Commands

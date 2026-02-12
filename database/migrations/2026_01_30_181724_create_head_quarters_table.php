@@ -9,14 +9,14 @@ return new class extends Migration
     /**
      * Run the migrations.
      *
-     * Table to store head offices/corporate offices for clients
+     * Table to store head quarters/corporate offices for clients
      */
     public function up(): void
     {
-        Schema::create('head_offices', function (Blueprint $table) {
+        Schema::create('head_quarters', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->string('code', 50)->comment('Internal head office code');
+            $table->string('code', 50)->comment('Internal head quarter code');
             $table->string('name', 255);
             $table->foreignId('province_id')->constrained()->onDelete('cascade');
             $table->foreignId('city_id')->constrained()->onDelete('cascade');
@@ -30,7 +30,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['client_id', 'code'], 'unique_client_code');
-            $table->index('status', 'idx_head_offices_status');
+            $table->index('status', 'idx_head_quarters_status');
         });
     }
 
@@ -39,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('head_offices');
+        Schema::dropIfExists('head_quarters');
     }
 };

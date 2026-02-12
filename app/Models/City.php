@@ -36,9 +36,9 @@ class City extends Model
         return $this->hasMany(Client::class);
     }
 
-    public function headOffices()
+    public function headQuarters()
     {
-        return $this->hasMany(HeadOffice::class);
+        return $this->hasMany(HeadQuarter::class);
     }
 
     public function merchants()

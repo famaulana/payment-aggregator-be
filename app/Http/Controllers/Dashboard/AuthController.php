@@ -187,7 +187,7 @@ class AuthController extends Controller
                 }
                 break;
 
-            case 'head_office':
+            case 'head_quarter':
                 $baseData += [
                     'phone'       => $entity->phone,
                     'email'       => $entity->email,
@@ -214,13 +214,13 @@ class AuthController extends Controller
                     'postal_code' => $entity->postal_code,
                 ];
 
-                // Parent: Head Office
-                if ($entity->headOffice) {
-                    $baseData['parent_entities']['head_office'] = [
-                        'id'   => $entity->headOffice->id,
-                        'type' => 'head_office',
-                        'name' => $entity->headOffice->name,
-                        'code' => $entity->headOffice->code,
+                // Parent: Head Quarter
+                if ($entity->headQuarter) {
+                    $baseData['parent_entities']['head_quarter'] = [
+                        'id'   => $entity->headQuarter->id,
+                        'type' => 'head_quarter',
+                        'name' => $entity->headQuarter->name,
+                        'code' => $entity->headQuarter->code,
                     ];
                 }
 
@@ -246,7 +246,7 @@ class AuthController extends Controller
                 return $entity->name;
             case 'client':
                 return $entity->client_name;
-            case 'head_office':
+            case 'head_quarter':
                 return $entity->name;
             case 'merchant':
                 return $entity->merchant_name;
@@ -262,7 +262,7 @@ class AuthController extends Controller
                 return $entity->code;
             case 'client':
                 return $entity->client_code;
-            case 'head_office':
+            case 'head_quarter':
                 return $entity->code;
             case 'merchant':
                 return $entity->merchant_code;
@@ -279,8 +279,8 @@ class AuthController extends Controller
             return 'system_owner';
         } elseif ($entity instanceof \App\Models\Client) {
             return 'client';
-        } elseif ($entity instanceof \App\Models\HeadOffice) {
-            return 'head_office';
+        } elseif ($entity instanceof \App\Models\HeadQuarter) {
+            return 'head_quarter';
         } elseif ($entity instanceof \App\Models\Merchant) {
             return 'merchant';
         }

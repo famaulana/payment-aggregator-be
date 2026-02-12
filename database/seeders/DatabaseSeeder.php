@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Database\Seeders\ApiKeySeeder;
 use Database\Seeders\ClientSeeder;
-use Database\Seeders\HeadOfficeSeeder;
+use Database\Seeders\HeadQuarterSeeder;
 use Database\Seeders\LocationSeeder;
 use Database\Seeders\MerchantSeeder;
 use Database\Seeders\PassportClientSeeder;
@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
             LocationSeeder::class,
             SystemOwnerSeeder::class,
             ClientSeeder::class,
-            HeadOfficeSeeder::class,
+            HeadQuarterSeeder::class,
             MerchantSeeder::class,
             UserSeeder::class,
             ApiKeySeeder::class,

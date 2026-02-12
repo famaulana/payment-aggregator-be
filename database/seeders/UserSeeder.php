@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Models\SystemOwner;
 use App\Models\Client;
-use App\Models\HeadOffice;
+use App\Models\HeadQuarter;
 use App\Models\Merchant;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -98,59 +98,59 @@ class UserSeeder extends Seeder
         );
         $clientAdmin->assignSingleRole('client');
 
-        // Head Office Admins - Entity: HeadOffice
-        $hoJkt = HeadOffice::where('client_id', $client->id)->where('code', 'HO-JKT')->first();
-        if ($hoJkt) {
-            $hoAdminJkt = User::updateOrCreate(
-                ['email' => 'ho-jakarta@jdp.co.id'],
+        // Head Quarter Admins - Entity: HeadQuarter
+        $hqJkt = HeadQuarter::where('client_id', $client->id)->where('code', 'HO-JKT')->first();
+        if ($hqJkt) {
+            $hqAdminJkt = User::updateOrCreate(
+                ['email' => 'hq-jakarta@jdp.co.id'],
                 [
-                    'username' => 'ho_jakarta',
-                    'full_name' => 'Admin Head Office Jakarta',
+                    'username' => 'hq_jakarta',
+                    'full_name' => 'Admin Head Quarter Jakarta',
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'entity_type' => HeadOffice::class,
-                    'entity_id' => $hoJkt->id,
+                    'entity_type' => HeadQuarter::class,
+                    'entity_id' => $hqJkt->id,
                     'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
             );
-            $hoAdminJkt->assignSingleRole('head_office');
+            $hqAdminJkt->assignSingleRole('head_quarter');
         }
 
-        $hoSby = HeadOffice::where('client_id', $client->id)->where('code', 'HO-SBY')->first();
-        if ($hoSby) {
-            $hoAdminSby = User::updateOrCreate(
-                ['email' => 'ho-surabaya@jdp.co.id'],
+        $hqSby = HeadQuarter::where('client_id', $client->id)->where('code', 'HO-SBY')->first();
+        if ($hqSby) {
+            $hqAdminSby = User::updateOrCreate(
+                ['email' => 'hq-surabaya@jdp.co.id'],
                 [
-                    'username' => 'ho_surabaya',
-                    'full_name' => 'Admin Head Office Surabaya',
+                    'username' => 'hq_surabaya',
+                    'full_name' => 'Admin Head Quarter Surabaya',
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'entity_type' => HeadOffice::class,
-                    'entity_id' => $hoSby->id,
+                    'entity_type' => HeadQuarter::class,
+                    'entity_id' => $hqSby->id,
                     'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
             );
-            $hoAdminSby->assignSingleRole('head_office');
+            $hqAdminSby->assignSingleRole('head_quarter');
         }
 
-        $hoBdg = HeadOffice::where('client_id', $client->id)->where('code', 'HO-BDG')->first();
-        if ($hoBdg) {
-            $hoAdminBdg = User::updateOrCreate(
-                ['email' => 'ho-bandung@jdp.co.id'],
+        $hqBdg = HeadQuarter::where('client_id', $client->id)->where('code', 'HO-BDG')->first();
+        if ($hqBdg) {
+            $hqAdminBdg = User::updateOrCreate(
+                ['email' => 'hq-bandung@jdp.co.id'],
                 [
-                    'username' => 'ho_bandung',
-                    'full_name' => 'Admin Head Office Bandung',
+                    'username' => 'hq_bandung',
+                    'full_name' => 'Admin Head Quarter Bandung',
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'entity_type' => HeadOffice::class,
-                    'entity_id' => $hoBdg->id,
+                    'entity_type' => HeadQuarter::class,
+                    'entity_id' => $hqBdg->id,
                     'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
             );
-            $hoAdminBdg->assignSingleRole('head_office');
+            $hqAdminBdg->assignSingleRole('head_quarter');
         }
 
         // Merchant Admins - Entity: Merchant

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->rememberToken();
             $table->string('full_name', 255);
 
-            $table->string('entity_type')->nullable()->comment('SystemOwner, Client, HeadOffice, or Merchant');
+            $table->string('entity_type')->nullable()->comment('SystemOwner, Client, HeadQuarter, or Merchant');
             $table->unsignedBigInteger('entity_id')->nullable()->comment('ID of the entity');
 
             $table->string('fcm_token', 500)->nullable();
