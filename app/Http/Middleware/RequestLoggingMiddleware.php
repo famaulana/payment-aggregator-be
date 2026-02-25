@@ -45,7 +45,7 @@ class RequestLoggingMiddleware
     protected function logRequest(Request $request, Response $response, float $duration): void
     {
         try {
-            $apiKeyRecord = $request->input('api_key_record');
+            $apiKeyRecord = $request->get('api_key_record');
             $userId = auth()->check() ? auth()->id() : null;
 
             ApiRequestLog::create([

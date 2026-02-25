@@ -140,6 +140,10 @@ return [
     */
     'settlement_failed' => 'Settlement gagal',
     'reconciliation_failed' => 'Rekonsiliasi gagal',
+    'refund_feature_unavailable' => 'Fitur refund belum tersedia',
+    'refund_not_available' => 'Refund tidak tersedia untuk transaksi ini',
+    'refund_not_available_status' => 'Refund hanya tersedia untuk transaksi yang sudah dibayar. Status saat ini: :status',
+    'refund_already_refunded' => 'Transaksi ini sudah sepenuhnya direfund',
 
     /*
     |--------------------------------------------------------------------------
@@ -178,7 +182,22 @@ return [
     'merchant_must_belong_to_your_client' => 'Merchant harus milik klien Anda',
     'merchant_must_belong_to_your_head_quarter' => 'Merchant harus milik head quarter Anda',
     'invalid_entity_type' => 'Tipe entitas tidak valid',
+    'entity_type_must_be_system_owner' => 'Tipe entitas harus system_owner',
     'failed_to_create_entity' => 'Gagal membuat entitas',
+
+    /*
+    |--------------------------------------------------------------------------
+    | System Owner Management (Dashboard)
+    |--------------------------------------------------------------------------
+    */
+    'system_owners_retrieved'      => 'System owner berhasil diambil',
+    'system_owner_retrieved'       => 'System owner berhasil diambil',
+    'system_owner_created'         => 'System owner berhasil dibuat',
+    'system_owner_updated'         => 'System owner berhasil diperbarui',
+    'system_owner_status_updated'  => 'Status system owner berhasil diperbarui',
+    'system_owner_not_found'       => 'System owner tidak ditemukan',
+    'system_owner_create_error'    => 'Gagal membuat system owner',
+    'system_owner_update_error'    => 'Gagal memperbarui system owner',
 
     /*
     |--------------------------------------------------------------------------

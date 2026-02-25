@@ -67,7 +67,10 @@ class SecurityValidationMiddleware
     {
         $sanitized = [];
         foreach ($data as $key => $value) {
-            if (is_array($value)) {
+            // Skip sanitizing objects (like api_key_record)
+            if (is_object($value)) {
+                $sanitized[$key] = $value;
+            } elseif (is_array($value)) {
                 $sanitized[$key] = $this->sanitizeArray($value);
             } else {
                 $sanitized[$key] = $this->sanitizeValue($value);
@@ -79,7 +82,7 @@ class SecurityValidationMiddleware
     /**
      * Sanitize individual value
      */
-    private function sanitizeValue($value): string
+    private function sanitizeValue($value): mixed
     {
         if (!is_string($value)) {
             return $value;
@@ -88,10 +91,10 @@ class SecurityValidationMiddleware
         // Remove potentially dangerous characters/sequences
         $value = strip_tags($value); // Remove HTML tags
         $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); // Convert special chars
-        
+
         // Remove potential SQL injection patterns
         $value = preg_replace('/(\'|")\s*(--|#|\/\*|\x00)/i', '', $value);
-        
+
         return $value;
     }
 

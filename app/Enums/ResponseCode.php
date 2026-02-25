@@ -57,6 +57,8 @@ enum ResponseCode: string
     case MERCHANT_SUSPENDED = '3017';
     case SETTLEMENT_FAILED = '3018';
     case RECONCILIATION_FAILED = '3019';
+    case REFUND_NOT_AVAILABLE = '3020';
+    case REFUND_ALREADY_REFUNDED = '3021';
 
     // Server Error Codes - 5000-5999
     case INTERNAL_SERVER_ERROR = '5000';
@@ -124,6 +126,8 @@ enum ResponseCode: string
             self::MERCHANT_SUSPENDED => 'messages.merchant_suspended',
             self::SETTLEMENT_FAILED => 'messages.settlement_failed',
             self::RECONCILIATION_FAILED => 'messages.reconciliation_failed',
+            self::REFUND_NOT_AVAILABLE => 'messages.refund_not_available',
+            self::REFUND_ALREADY_REFUNDED => 'messages.refund_already_refunded',
 
             self::INTERNAL_SERVER_ERROR => 'messages.internal_server_error',
             self::DATABASE_ERROR => 'messages.database_error',
@@ -173,7 +177,8 @@ enum ResponseCode: string
             self::INVALID_AMOUNT, self::INVALID_CURRENCY,
             self::DUPLICATE_TRANSACTION, self::KYB_PENDING, self::KYB_REJECTED,
             self::CLIENT_SUSPENDED, self::MERCHANT_SUSPENDED,
-            self::SETTLEMENT_FAILED, self::RECONCILIATION_FAILED => 400,
+            self::SETTLEMENT_FAILED, self::RECONCILIATION_FAILED,
+            self::REFUND_NOT_AVAILABLE, self::REFUND_ALREADY_REFUNDED => 400,
 
             // Not Found - 404
             self::NOT_FOUND, self::RESOURCE_NOT_FOUND,

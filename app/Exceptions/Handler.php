@@ -44,13 +44,13 @@ class Handler extends ExceptionHandler
     protected function handleException(Throwable $e, Request $request): ?JsonResponse
     {
         if ($request->expectsJson() || $request->is('api/*')) {
-            return $this->renderApiException($e);
+            return $this->renderApiException($e, $request);
         }
 
         return null;
     }
 
-    protected function renderApiException(Throwable $e): JsonResponse
+    protected function renderApiException(Throwable $e, ?Request $request = null): JsonResponse
     {
         if ($e instanceof AppException) {
             return ResponseService::error(
@@ -68,6 +68,12 @@ class Handler extends ExceptionHandler
         }
 
         if ($e instanceof AuthenticationException) {
+            if ($request && $this->isBearerTokenExpired($request)) {
+                return ResponseService::error(
+                    ResponseCode::TOKEN_EXPIRED,
+                    __('messages.token_expired')
+                );
+            }
             return ResponseService::unauthorized($e->getMessage());
         }
 
@@ -109,6 +115,39 @@ class Handler extends ExceptionHandler
         }
 
         return $this->renderServerError($e);
+    }
+
+    private function isBearerTokenExpired(Request $request): bool
+    {
+        $bearerToken = $request->bearerToken();
+        if (!$bearerToken) {
+            return false;
+        }
+
+        try {
+            // Passport issues JWTs — decode payload (no signature verification needed, just checking exp)
+            $parts = explode('.', $bearerToken);
+            if (count($parts) === 3) {
+                $padded  = str_pad(strtr($parts[1], '-_', '+/'), strlen($parts[1]) + (4 - strlen($parts[1]) % 4) % 4, '=');
+                $payload = json_decode(base64_decode($padded), true);
+
+                if (isset($payload['exp'])) {
+                    return $payload['exp'] < time();
+                }
+
+                // JWT with jti — fall back to DB lookup
+                if (isset($payload['jti'])) {
+                    $token = \Laravel\Passport\Token::find($payload['jti']);
+                    if ($token && $token->expires_at) {
+                        return $token->expires_at->isPast();
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // Not a JWT or unreadable — treat as invalid (not expired)
+        }
+
+        return false;
     }
 
     protected function renderServerError(Throwable $e): JsonResponse

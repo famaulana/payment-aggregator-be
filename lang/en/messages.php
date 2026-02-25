@@ -140,6 +140,10 @@ return [
     */
     'settlement_failed' => 'Settlement failed',
     'reconciliation_failed' => 'Reconciliation failed',
+    'refund_feature_unavailable' => 'Refund feature is not yet available',
+    'refund_not_available' => 'Refund is not available for this transaction',
+    'refund_not_available_status' => 'Refund is only available for paid transactions. Current status: :status',
+    'refund_already_refunded' => 'This transaction has already been fully refunded',
 
     /*
     |--------------------------------------------------------------------------
@@ -178,7 +182,22 @@ return [
     'merchant_must_belong_to_your_client' => 'Merchant must belong to your client',
     'merchant_must_belong_to_your_head_quarter' => 'Merchant must belong to your head quarter',
     'invalid_entity_type' => 'Invalid entity type',
+    'entity_type_must_be_system_owner' => 'Entity type must be system_owner',
     'failed_to_create_entity' => 'Failed to create entity',
+
+    /*
+    |--------------------------------------------------------------------------
+    | System Owner Management (Dashboard)
+    |--------------------------------------------------------------------------
+    */
+    'system_owners_retrieved'      => 'System owners retrieved successfully',
+    'system_owner_retrieved'       => 'System owner retrieved successfully',
+    'system_owner_created'         => 'System owner created successfully',
+    'system_owner_updated'         => 'System owner updated successfully',
+    'system_owner_status_updated'  => 'System owner status updated successfully',
+    'system_owner_not_found'       => 'System owner not found',
+    'system_owner_create_error'    => 'Failed to create system owner',
+    'system_owner_update_error'    => 'Failed to update system owner',
 
     /*
     |--------------------------------------------------------------------------

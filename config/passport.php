@@ -41,9 +41,9 @@ return [
     */
 
     'connection' => env('PASSPORT_CONNECTION'),
-    'access_token_ttl' => env('PASSPORT_ACCESS_TOKEN_TTL', 15),
-    'refresh_token_ttl' => env('PASSPORT_REFRESH_TOKEN_TTL', 30),
-    'personal_access_token_ttl' => env('PASSPORT_PAT_TOKEN_TTL', 90),
+    'dashboard_access_token_ttl'  => env('PASSPORT_DASHBOARD_ACCESS_TOKEN_TTL', 60),   // menit
+    'dashboard_refresh_token_ttl' => env('PASSPORT_DASHBOARD_REFRESH_TOKEN_TTL', 4320), // menit (default 3 hari)
+    'api_access_token_ttl'        => env('PASSPORT_API_ACCESS_TOKEN_TTL', 60),          // menit
 
     'password_client' => [
         'id' => env('PASSPORT_PASSWORD_CLIENT_ID'),

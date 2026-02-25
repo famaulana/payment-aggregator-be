@@ -4,12 +4,17 @@ use App\Http\Controllers\Dashboard\AuthController as DashboardAuthController;
 use App\Http\Controllers\Dashboard\ApiKeyController;
 use App\Http\Controllers\Dashboard\AuditLogController;
 use App\Http\Controllers\Dashboard\UserController;
+use App\Http\Controllers\Dashboard\SystemOwnerController;
 use App\Http\Controllers\Dashboard\ClientController;
 use App\Http\Controllers\Dashboard\HeadQuarterController;
 use App\Http\Controllers\Dashboard\MerchantController;
 use App\Http\Controllers\Dashboard\LocationController;
+use App\Http\Controllers\Dashboard\SimulatorController;
 use App\Http\Controllers\Api\AuthController as ApiAuthController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\PaymentMethodController;
+use App\Http\Controllers\Api\V1\BalanceController;
+use App\Http\Controllers\Api\V1\WebhookController;
 use Illuminate\Support\Facades\Route;
 
 // Route::prefix('oauth')->group(function () {
@@ -38,10 +43,29 @@ Route::prefix('v1')->group(function () {
                 Route::get('/client/{clientId}', [ApiKeyController::class, 'getByClient']);
             });
 
+            // System Owner management
+            Route::prefix('system-owners')->group(function () {
+                // Only the top-level system_owner role can create new system owners
+                Route::middleware(['role:system_owner'])->group(function () {
+                    Route::post('/', [SystemOwnerController::class, 'store']);
+                });
+
+                // All system_owner sub-roles can list, view, and self-update
+                Route::middleware(['role:system_owner|system_owner_admin|system_owner_finance|system_owner_support'])->group(function () {
+                    Route::get('/', [SystemOwnerController::class, 'index']);
+                    Route::get('/{id}', [SystemOwnerController::class, 'show']);
+                    Route::put('/{id}', [SystemOwnerController::class, 'update']);
+                    Route::post('/{id}/toggle-status', [SystemOwnerController::class, 'toggleStatus']);
+                });
+            });
+
             Route::middleware(['role:system_owner|system_owner_admin'])->prefix('audit-logs')->group(function () {
                 Route::get('/', [AuditLogController::class, 'index']);
                 Route::get('/{id}', [AuditLogController::class, 'show']);
             });
+
+            // Self-profile update — any authenticated dashboard user (no role restriction)
+            Route::put('/users', [UserController::class, 'update']);
 
             Route::middleware(['role:system_owner|system_owner_admin|client|client_admin|head_quarter'])->prefix('users')->group(function () {
                 Route::get('/', [UserController::class, 'index']);
@@ -104,6 +128,20 @@ Route::prefix('v1')->group(function () {
                 Route::get('/districts', [LocationController::class, 'districts']);
                 Route::get('/sub-districts', [LocationController::class, 'subDistricts']);
             });
+
+            // ─────────────────────────────────────────────────────────────────
+            // Payment Simulator — for testing payment flows via dashboard
+            // ─────────────────────────────────────────────────────────────────
+            Route::middleware(['role:system_owner|system_owner_admin|client|client_admin'])
+                ->prefix('simulator')
+                ->group(function () {
+                    Route::get('/transactions', [SimulatorController::class, 'transactions']);
+                    Route::get('/transactions/{transactionId}', [SimulatorController::class, 'show']);
+                    Route::post('/transactions/{transactionId}/pay', [SimulatorController::class, 'pay']);
+                    Route::post('/transactions/{transactionId}/fail', [SimulatorController::class, 'fail']);
+                    Route::post('/transactions/{transactionId}/expire', [SimulatorController::class, 'expire']);
+                    Route::post('/transactions/{transactionId}/refund', [SimulatorController::class, 'refund']);
+                });
         });
     });
 
@@ -112,8 +150,48 @@ Route::prefix('v1')->group(function () {
         Route::post('/logout', [ApiAuthController::class, 'logout']);
         Route::get('/me', [ApiAuthController::class, 'me']);
     });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Payment Gateway Wrapper API
+    // Auth: X-Api-Key + HMAC Signature (no OAuth)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // Inbound webhooks from PG — no client auth, validated by PG signature inside job
+    Route::post('/webhooks/inbound/{gateway}', [WebhookController::class, 'inbound'])
+        ->middleware(['security.validation']);
+
+    // All other payment endpoints require API key auth
+    Route::middleware([
+        'require.api.key.whitelist',
+        'validate.ip',
+        'verify.signature',
+        'rate.limit.by.api.key',
+        'security.validation',
+        'log.api',
+    ])->group(function () {
+
+        // Payments
+        Route::post('/payments', [PaymentController::class, 'create']);
+        Route::get('/payments', [PaymentController::class, 'index']);
+        Route::get('/payments/{transactionId}', [PaymentController::class, 'show']);
+        Route::post('/payments/{transactionId}/cancel', [PaymentController::class, 'cancel']);
+        Route::post('/payments/{transactionId}/refund', [PaymentController::class, 'refund']);
+
+        // Payment Methods
+        Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
+
+        // Balance
+        Route::get('/balance', [BalanceController::class, 'show']);
+        Route::get('/balance/history', [BalanceController::class, 'history']);
+
+        // Webhook test
+        Route::post('/webhooks/test', [WebhookController::class, 'test']);
+
+        // Webhook simulator — for internal developer testing
+        Route::prefix('webhooks/simulator')->group(function () {
+            Route::get('/transactions', [WebhookController::class, 'simulatorTransactions']);
+            Route::post('/trigger', [WebhookController::class, 'simulatorTrigger']);
+        });
+    });
 });
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});

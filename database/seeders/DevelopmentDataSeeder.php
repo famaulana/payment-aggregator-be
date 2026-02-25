@@ -258,7 +258,7 @@ class DevelopmentDataSeeder extends Seeder
             'password' => Hash::make('password123'),
             'status' => 'active',
             'email_verified_at' => now(),
-            'entity_type' => Client::class,
+            'entity_type' => 'client',
             'entity_id' => $client->id,
         ]);
 
@@ -278,7 +278,7 @@ class DevelopmentDataSeeder extends Seeder
             'password' => Hash::make('password123'),
             'status' => 'active',
             'email_verified_at' => now(),
-            'entity_type' => HeadQuarter::class,
+            'entity_type' => 'head_quarter',
             'entity_id' => $headQuarter->id,
         ]);
 
@@ -298,7 +298,7 @@ class DevelopmentDataSeeder extends Seeder
             'password' => Hash::make('password123'),
             'status' => 'active',
             'email_verified_at' => now(),
-            'entity_type' => Merchant::class,
+            'entity_type' => 'merchant',
             'entity_id' => $merchant->id,
         ]);
 

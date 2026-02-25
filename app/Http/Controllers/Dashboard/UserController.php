@@ -111,7 +111,23 @@ class UserController extends Controller
 
     private function extractEntityData($request, string $entityType): array
     {
-        if ($entityType === 'client') {
+        if ($entityType === 'system_owner') {
+            return [
+                'code'          => $request->code,
+                'name'          => $request->name,
+                'business_type' => $request->business_type,
+                'pic_name'      => $request->pic_name,
+                'pic_position'  => $request->pic_position,
+                'pic_phone'     => $request->pic_phone,
+                'pic_email'     => $request->pic_email,
+                'company_phone' => $request->company_phone,
+                'company_email' => $request->company_email,
+                'province_id'   => $request->province_id,
+                'city_id'       => $request->city_id,
+                'address'       => $request->address,
+                'postal_code'   => $request->postal_code,
+            ];
+        } elseif ($entityType === 'client') {
             return [
                 'client_code' => $request->client_code,
                 'client_name' => $request->client_name,
@@ -180,16 +196,22 @@ class UserController extends Controller
         }
     }
 
-    public function update(int $id, UpdateUserRequest $request): JsonResponse
+    public function update(UpdateUserRequest $request, ?int $id = null): JsonResponse
     {
+        $currentUser = auth()->user();
+        $isSelf      = $id === null;
+        $targetId    = $isSelf ? $currentUser->id : $id;
+
         try {
             $user = $this->userService->updateUser(
-                id: $id,
+                id: $targetId,
                 username: $request->username,
                 email: $request->email,
                 fullName: $request->full_name,
-                role: $request->role,
-                status: $request->status
+                // Self-update: cannot change own role or status
+                role: $isSelf ? null : $request->role,
+                status: $isSelf ? null : $request->status,
+                rawEntityData: $request->validated(),
             );
 
             return $this->updated(

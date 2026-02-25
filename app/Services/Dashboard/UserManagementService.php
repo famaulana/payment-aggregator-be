@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Client;
 use App\Models\HeadQuarter;
 use App\Models\Merchant;
+use App\Models\SystemOwner;
 use App\Services\Shared\AuditTrailService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -59,17 +60,17 @@ class UserManagementService
             $query->where(function ($q) use ($clientId, $headQuarterIds, $merchantIds) {
                 // Users directly under the client
                 $q->where(function ($subQuery) use ($clientId) {
-                    $subQuery->where('entity_type', Client::class)
+                    $subQuery->where('entity_type', 'client')
                         ->where('entity_id', $clientId);
                 })
                 // Users under head quarters owned by this client
                 ->orWhere(function ($subQuery) use ($headQuarterIds) {
-                    $subQuery->where('entity_type', HeadQuarter::class)
+                    $subQuery->where('entity_type', 'head_quarter')
                         ->whereIn('entity_id', $headQuarterIds);
                 })
                 // Users under merchants owned by this client
                 ->orWhere(function ($subQuery) use ($merchantIds) {
-                    $subQuery->where('entity_type', Merchant::class)
+                    $subQuery->where('entity_type', 'merchant')
                         ->whereIn('entity_id', $merchantIds);
                 });
             });
@@ -82,12 +83,12 @@ class UserManagementService
             $query->where(function ($q) use ($headQuarterId, $merchantIds) {
                 // Users directly under this head quarter
                 $q->where(function ($subQuery) use ($headQuarterId) {
-                    $subQuery->where('entity_type', HeadQuarter::class)
+                    $subQuery->where('entity_type', 'head_quarter')
                         ->where('entity_id', $headQuarterId);
                 })
                 // Users under merchants owned by this head quarter
                 ->orWhere(function ($subQuery) use ($merchantIds) {
-                    $subQuery->where('entity_type', Merchant::class)
+                    $subQuery->where('entity_type', 'merchant')
                         ->whereIn('entity_id', $merchantIds);
                 });
             });
@@ -185,7 +186,11 @@ class UserManagementService
             $entity = null;
             $entityClass = $this->resolveEntityClass($entityType);
 
-            if ($entityType === 'client') {
+            if ($entityType === 'system_owner') {
+                $entity = SystemOwner::create(array_merge($entityData, [
+                    'status' => 'active',
+                ]));
+            } elseif ($entityType === 'client') {
                 $entity = Client::create(array_merge($entityData, [
                     'system_owner_id' => $currentUser->entity_id,
                     'created_by' => $currentUser->id,
@@ -260,7 +265,8 @@ class UserManagementService
         ?string $email = null,
         ?string $fullName = null,
         ?string $role = null,
-        ?string $status = null
+        ?string $status = null,
+        array $rawEntityData = []
     ): User {
         $currentUser = auth()->user();
         $user = User::with(['entity', 'creator', 'roles'])->findOrFail($id);
@@ -286,12 +292,18 @@ class UserManagementService
         if ($fullName) $user->full_name = $fullName;
         if ($status) $user->status = $status;
 
+        $entityData = $this->buildEntityData($user, $rawEntityData);
+
         DB::beginTransaction();
         try {
             $user->save();
 
             if ($role && $role !== $user->role_name) {
                 $user->assignSingleRole($role);
+            }
+
+            if (!empty($entityData) && $user->entity) {
+                $user->entity->update($entityData);
             }
 
             $this->auditService->logUserUpdate($user->id, $oldValues, [
@@ -347,8 +359,20 @@ class UserManagementService
 
     private function validateUserCreation(User $currentUser, string $role, string $entityType, int $entityId): void
     {
+        // Only the top-level system_owner role can create other system_owner sub-roles.
+        // system_owner_admin and below cannot create system_owner users.
         if (in_array($role, self::SYSTEM_OWNER_ROLES)) {
-            throw new \Exception(__('messages.cannot_create_system_owner'));
+            if (!$currentUser->hasRole('system_owner')) {
+                throw new \Exception(__('messages.cannot_create_system_owner'));
+            }
+            // system_owner can create sub-roles but not another system_owner
+            if ($role === 'system_owner') {
+                throw new \Exception(__('messages.cannot_create_system_owner'));
+            }
+            if ($entityType !== 'system_owner') {
+                throw new \Exception(__('messages.entity_type_must_be_system_owner'));
+            }
+            return;
         }
 
         if ($currentUser->isSystemOwner()) {
@@ -394,6 +418,11 @@ class UserManagementService
 
     private function canAccessUser(User $currentUser, User $targetUser): bool
     {
+        // Any user can always access/update themselves
+        if ($currentUser->id === $targetUser->id) {
+            return true;
+        }
+
         if ($currentUser->isSystemOwner()) {
             return !$targetUser->isSystemOwner();
         }
@@ -411,12 +440,87 @@ class UserManagementService
         return false;
     }
 
+    /**
+     * Map raw request input to the correct entity model columns.
+     * Handles field aliases (e.g. ho_email → email, merchant_email → email).
+     */
+    private function buildEntityData(User $user, array $input): array
+    {
+        if (empty($input)) {
+            return [];
+        }
+
+        if ($user->isSystemOwner()) {
+            $fields = [
+                'name', 'business_type',
+                'pic_name', 'pic_position', 'pic_phone', 'pic_email',
+                'company_phone', 'company_email',
+                'province_id', 'city_id', 'address', 'postal_code',
+            ];
+            return $this->pickFields($input, $fields);
+        }
+
+        if ($user->isClientUser()) {
+            $fields = [
+                'client_name', 'business_type',
+                'bank_name', 'bank_account_number', 'bank_account_holder_name', 'bank_branch',
+                'pic_name', 'pic_position', 'pic_phone', 'pic_email',
+                'company_phone', 'company_email',
+                'province_id', 'city_id', 'address', 'postal_code',
+            ];
+            return $this->pickFields($input, $fields);
+        }
+
+        if ($user->isHeadQuarterUser()) {
+            $fields = [
+                'name', 'province_id', 'city_id', 'district_id',
+                'sub_district_id', 'address', 'postal_code', 'phone',
+            ];
+            $data = $this->pickFields($input, $fields);
+            // ho_email → entity email column
+            if (array_key_exists('ho_email', $input)) {
+                $data['email'] = $input['ho_email'];
+            }
+            return $data;
+        }
+
+        if ($user->isMerchantUser()) {
+            $fields = [
+                'merchant_name', 'province_id', 'city_id', 'district_id',
+                'sub_district_id', 'address', 'postal_code', 'phone', 'pos_merchant_id',
+            ];
+            $data = $this->pickFields($input, $fields);
+            // merchant_email → entity email column
+            if (array_key_exists('merchant_email', $input)) {
+                $data['email'] = $input['merchant_email'];
+            }
+            return $data;
+        }
+
+        return [];
+    }
+
+    /**
+     * Pick only keys that exist in $input (preserves explicit nulls).
+     */
+    private function pickFields(array $input, array $keys): array
+    {
+        $result = [];
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $input)) {
+                $result[$key] = $input[$key];
+            }
+        }
+        return $result;
+    }
+
     private function resolveEntityClass(string $entityType): string
     {
         return match($entityType) {
-            'client' => Client::class,
+            'system_owner' => SystemOwner::class,
+            'client'       => Client::class,
             'head_quarter' => HeadQuarter::class,
-            'merchant' => Merchant::class,
+            'merchant'     => Merchant::class,
             default => throw new \Exception(__('messages.invalid_entity_type')),
         };
     }
