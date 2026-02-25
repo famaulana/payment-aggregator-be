@@ -16,7 +16,13 @@ class Transaction extends Model
         'merchant_id',
         'head_quarter_id',
         'transaction_id',
+        'merchant_ref',
+        'currency',
         'pg_reference_id',
+        'pg_checkout_url',
+        'pg_deeplink_url',
+        'pg_qr_string',
+        'pg_va_number',
         'pos_reference_id',
         'payment_method_id',
         'payment_gateway_id',
@@ -25,6 +31,7 @@ class Transaction extends Model
         'our_margin',
         'mdr_amount',
         'net_amount',
+        'refunded_amount',
         'status',
         'original_status',
         'paid_at',
@@ -43,6 +50,9 @@ class Transaction extends Model
         'override_reason',
         'description',
         'metadata',
+        'callback_url',
+        'redirect_url',
+        'items',
     ];
 
     protected $casts = [
@@ -54,12 +64,14 @@ class Transaction extends Model
         'our_margin' => 'decimal:2',
         'mdr_amount' => 'decimal:2',
         'net_amount' => 'decimal:2',
+        'refunded_amount' => 'decimal:2',
         'paid_at' => 'datetime',
         'expired_at' => 'datetime',
         'settlement_date' => 'date',
         'is_overridden' => 'boolean',
         'overridden_at' => 'datetime',
         'metadata' => 'array',
+        'items' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -107,5 +119,31 @@ class Transaction extends Model
     public function reconciliations()
     {
         return $this->hasMany(Reconciliation::class);
+    }
+
+    public function refunds()
+    {
+        return $this->hasMany(PaymentRefund::class);
+    }
+
+    public function webhookLogs()
+    {
+        return $this->hasMany(PaymentWebhookLog::class);
+    }
+
+    public function gatewayLogs()
+    {
+        return $this->hasMany(PaymentGatewayLog::class);
+    }
+
+    public function canBeRefunded(): bool
+    {
+        return $this->status === TransactionStatus::PAID
+            && (float) $this->refunded_amount < (float) $this->gross_amount;
+    }
+
+    public function getRemainingRefundableAmount(): float
+    {
+        return (float) $this->gross_amount - (float) $this->refunded_amount;
     }
 }

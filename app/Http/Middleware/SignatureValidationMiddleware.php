@@ -68,7 +68,7 @@ class SignatureValidationMiddleware
             );
         }
 
-        $apiKeyRecord = $request->input('api_key_record');
+        $apiKeyRecord = $request->get('api_key_record');
 
         if (!$apiKeyRecord) {
             return ResponseService::error(

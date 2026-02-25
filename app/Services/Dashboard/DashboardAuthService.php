@@ -114,18 +114,20 @@ class DashboardAuthService
 
     private function issuePasswordGrantToken(User $user, \Laravel\Passport\Client $client, string $password): array
     {
-        $expiresIn = (int) config('passport.access_token_ttl', 60) * 60;
-        $expiresAt = now()->addSeconds($expiresIn);
-
         $tokenName = 'Password Grant Token';
-        $token = $user->createToken($tokenName, [], $expiresAt);
+        $token = $user->createToken($tokenName);
 
         $accessToken = $token->accessToken;
+
+        // Baca expires_at langsung dari DB record — konsisten dengan JWT exp
+        $tokenModel = $token->token;
+        $expiresAt  = $tokenModel->expires_at;
+        $expiresIn  = (int) now()->diffInSeconds($expiresAt);
 
         $refreshToken = null;
         $grantTypes = is_string($client->grant_types) ? json_decode($client->grant_types, true) : $client->grant_types;
         if (in_array('refresh_token', $grantTypes ?? [])) {
-            $refreshToken = $this->createRefreshToken($token->token->id, $client);
+            $refreshToken = $this->createRefreshToken($tokenModel->id, $client);
         }
 
         return [
@@ -145,7 +147,7 @@ class DashboardAuthService
             'id' => $refreshToken,
             'access_token_id' => $accessTokenId,
             'revoked' => false,
-            'expires_at' => now()->addDays((int) config('passport.refresh_token_ttl', 30)),
+            'expires_at' => now()->addMinutes((int) config('passport.dashboard_refresh_token_ttl', 4320)),
         ]);
 
         return $refreshToken;

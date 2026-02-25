@@ -15,10 +15,20 @@ class PaymentMethod extends Model
         'method_name',
         'method_type',
         'status',
+        'icon_url',
+        'min_amount',
+        'max_amount',
+        'is_redirect_based',
+        'description',
+        'sort_order',
     ];
 
     protected $casts = [
         'method_type' => PaymentMethodType::class,
+        'min_amount' => 'integer',
+        'max_amount' => 'integer',
+        'is_redirect_based' => 'boolean',
+        'sort_order' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

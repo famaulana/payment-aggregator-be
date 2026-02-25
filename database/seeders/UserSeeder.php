@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('SuperAdmin123!'),
                 'status' => 'active',
                 'email_verified_at' => now(),
-                'entity_type' => SystemOwner::class,
+                'entity_type' => 'system_owner',
                 'entity_id' => $systemOwner->id,
             ]
         );
@@ -45,7 +45,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'status' => 'active',
                 'email_verified_at' => now(),
-                'entity_type' => SystemOwner::class,
+                'entity_type' => 'system_owner',
                 'entity_id' => $systemOwner->id,
                 'created_by' => $superAdmin->id ?? null,
             ]
@@ -60,7 +60,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'status' => 'active',
                 'email_verified_at' => now(),
-                'entity_type' => SystemOwner::class,
+                'entity_type' => 'system_owner',
                 'entity_id' => $systemOwner->id,
                 'created_by' => $superAdmin->id ?? null,
             ]
@@ -75,7 +75,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'status' => 'active',
                 'email_verified_at' => now(),
-                'entity_type' => SystemOwner::class,
+                'entity_type' => 'system_owner',
                 'entity_id' => $systemOwner->id,
                 'created_by' => $superAdmin->id ?? null,
             ]
@@ -91,7 +91,7 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password123'),
                 'status' => 'active',
                 'email_verified_at' => now(),
-                'entity_type' => Client::class,
+                'entity_type' => 'client',
                 'entity_id' => $client->id,
                 'created_by' => $systemOwnerAdmin->id ?? null,
             ]
@@ -109,7 +109,7 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'entity_type' => HeadQuarter::class,
+                    'entity_type' => 'head_quarter',
                     'entity_id' => $hqJkt->id,
                     'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
@@ -127,7 +127,7 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'entity_type' => HeadQuarter::class,
+                    'entity_type' => 'head_quarter',
                     'entity_id' => $hqSby->id,
                     'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
@@ -145,7 +145,7 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'entity_type' => HeadQuarter::class,
+                    'entity_type' => 'head_quarter',
                     'entity_id' => $hqBdg->id,
                     'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
@@ -164,7 +164,7 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'entity_type' => Merchant::class,
+                    'entity_type' => 'merchant',
                     'entity_id' => $merchant1->id,
                     'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
@@ -182,7 +182,7 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'entity_type' => Merchant::class,
+                    'entity_type' => 'merchant',
                     'entity_id' => $merchant2->id,
                     'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
@@ -200,7 +200,7 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'entity_type' => Merchant::class,
+                    'entity_type' => 'merchant',
                     'entity_id' => $merchant3->id,
                     'created_by' => $systemOwnerAdmin->id ?? null,
                 ]
@@ -218,7 +218,7 @@ class UserSeeder extends Seeder
                     'password' => Hash::make('password123'),
                     'status' => 'active',
                     'email_verified_at' => now(),
-                    'entity_type' => Merchant::class,
+                    'entity_type' => 'merchant',
                     'entity_id' => $merchant4->id,
                     'created_by' => $systemOwnerAdmin->id ?? null,
                 ]

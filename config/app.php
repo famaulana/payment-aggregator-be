@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),
 
     /*
     |--------------------------------------------------------------------------
@@ -122,5 +122,18 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Simulator
+    |--------------------------------------------------------------------------
+    |
+    | Controls payment simulator behaviour used in local/sandbox environments.
+    | simulator_auto_success: if true, every newly created payment is
+    | automatically marked as PAID (non-production only).
+    |
+    */
+
+    'simulator_auto_success' => env('SIMULATOR_AUTO_SUCCESS', true),
 
 ];

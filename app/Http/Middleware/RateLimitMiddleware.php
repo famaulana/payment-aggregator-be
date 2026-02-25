@@ -65,7 +65,7 @@ class RateLimitMiddleware
 
     protected function resolveRequestSignature(Request $request): string
     {
-        $apiKey = $request->input('api_key_record')?->id ?? $request->header('X-API-Key');
+        $apiKey = $request->get('api_key_record')?->id ?? $request->header('X-API-Key');
 
         if ($apiKey) {
             return sha1($apiKey . '|' . $request->ip() . '|' . $request->route()->getName());

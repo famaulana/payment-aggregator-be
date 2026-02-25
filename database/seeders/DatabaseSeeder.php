@@ -30,6 +30,8 @@ class DatabaseSeeder extends Seeder
             MerchantSeeder::class,
             UserSeeder::class,
             ApiKeySeeder::class,
+            PaymentGatewaySeeder::class,
+            PaymentMethodSeeder::class,
         ]);
     }
 }

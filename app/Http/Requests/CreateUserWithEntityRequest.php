@@ -34,8 +34,13 @@ class CreateUserWithEntityRequest extends FormRequest
         ];
 
         if ($user->isSystemOwner()) {
-            $rules['entity_type'] = ['required', 'in:client'];
-            $rules = array_merge($rules, $this->getClientRules());
+            $rules['entity_type'] = ['required', 'in:client,system_owner'];
+
+            if ($entityType === 'system_owner') {
+                $rules = array_merge($rules, $this->getSystemOwnerRules());
+            } else {
+                $rules = array_merge($rules, $this->getClientRules());
+            }
         } elseif ($user->isClientUser()) {
             $rules['entity_type'] = ['required', 'in:head_quarter,merchant'];
 
@@ -50,6 +55,25 @@ class CreateUserWithEntityRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    private function getSystemOwnerRules(): array
+    {
+        return [
+            'code'          => ['required', 'string', 'max:50', 'unique:system_owners,code'],
+            'name'          => ['required', 'string', 'max:255'],
+            'business_type' => ['nullable', 'string', 'max:100'],
+            'pic_name'      => ['nullable', 'string', 'max:255'],
+            'pic_position'  => ['nullable', 'string', 'max:100'],
+            'pic_phone'     => ['nullable', 'string', 'max:20'],
+            'pic_email'     => ['nullable', 'email', 'max:255'],
+            'company_phone' => ['nullable', 'string', 'max:20'],
+            'company_email' => ['nullable', 'email', 'max:255'],
+            'province_id'   => ['nullable', 'exists:provinces,id'],
+            'city_id'       => ['nullable', 'exists:cities,id'],
+            'address'       => ['nullable', 'string'],
+            'postal_code'   => ['nullable', 'string', 'max:10'],
+        ];
     }
 
     private function getClientRules(): array

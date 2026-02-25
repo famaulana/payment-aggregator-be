@@ -194,25 +194,25 @@ class User extends Authenticatable
 
     public function scopeClientUsers($query, $clientId)
     {
-        return $query->where('entity_type', Client::class)
+        return $query->where('entity_type', 'client')
             ->where('entity_id', $clientId);
     }
 
     public function scopeHeadQuarterUsers($query, $headQuarterId)
     {
-        return $query->where('entity_type', HeadQuarter::class)
+        return $query->where('entity_type', 'head_quarter')
             ->where('entity_id', $headQuarterId);
     }
 
     public function scopeMerchantUsers($query, $merchantId)
     {
-        return $query->where('entity_type', Merchant::class)
+        return $query->where('entity_type', 'merchant')
             ->where('entity_id', $merchantId);
     }
 
     public function scopeSystemOwnerUsers($query, $systemOwnerId)
     {
-        return $query->where('entity_type', SystemOwner::class)
+        return $query->where('entity_type', 'system_owner')
             ->where('entity_id', $systemOwnerId);
     }
 
@@ -224,7 +224,7 @@ class User extends Authenticatable
 
     public function isSystemOwner(): bool
     {
-        return $this->entity_type === SystemOwner::class
+        return $this->entity_type === 'system_owner'
             || $this->hasAnySystemOwnerRole();
     }
 
@@ -251,7 +251,7 @@ class User extends Authenticatable
 
     public function isClientUser(): bool
     {
-        return $this->entity_type === Client::class
+        return $this->entity_type === 'client'
             || $this->hasExactRole('client')
             || $this->hasRole('client_admin')
             || $this->hasRole('client_finance')
@@ -260,13 +260,13 @@ class User extends Authenticatable
 
     public function isHeadQuarterUser(): bool
     {
-        return $this->entity_type === HeadQuarter::class
+        return $this->entity_type === 'head_quarter'
             || $this->hasExactRole('head_quarter');
     }
 
     public function isMerchantUser(): bool
     {
-        return $this->entity_type === Merchant::class
+        return $this->entity_type === 'merchant'
             || $this->hasExactRole('merchant');
     }
 
@@ -324,56 +324,56 @@ class User extends Authenticatable
         $userEntity = $this->entity;
 
         if ($entityType === 'system_owner') {
-            return $this->entity_type === SystemOwner::class && $this->entity_id === $entityId;
+            return $this->entity_type === 'system_owner' && $this->entity_id === $entityId;
         }
 
         if ($entityType === 'client') {
-            if ($this->entity_type === SystemOwner::class) {
+            if ($this->entity_type === 'system_owner') {
                 return true;
             }
-            if ($this->entity_type === Client::class) {
+            if ($this->entity_type === 'client') {
                 return $this->entity_id === $entityId;
             }
-            if ($this->entity_type === HeadQuarter::class && $userEntity) {
+            if ($this->entity_type === 'head_quarter' && $userEntity) {
                 return $userEntity->client_id === $entityId;
             }
-            if ($this->entity_type === Merchant::class && $userEntity) {
+            if ($this->entity_type === 'merchant' && $userEntity) {
                 return $userEntity->client_id === $entityId;
             }
         }
 
         if ($entityType === 'head_quarter') {
-            if ($this->entity_type === SystemOwner::class) {
+            if ($this->entity_type === 'system_owner') {
                 return true;
             }
-            if ($this->entity_type === Client::class && $userEntity) {
+            if ($this->entity_type === 'client' && $userEntity) {
                 return \App\Models\HeadQuarter::where('client_id', $userEntity->id)
                     ->where('id', $entityId)
                     ->exists();
             }
-            if ($this->entity_type === HeadQuarter::class) {
+            if ($this->entity_type === 'head_quarter') {
                 return $this->entity_id === $entityId;
             }
-            if ($this->entity_type === Merchant::class && $userEntity) {
+            if ($this->entity_type === 'merchant' && $userEntity) {
                 return $userEntity->head_quarter_id === $entityId;
             }
         }
 
         if ($entityType === 'merchant') {
-            if ($this->entity_type === SystemOwner::class) {
+            if ($this->entity_type === 'system_owner') {
                 return true;
             }
-            if ($this->entity_type === Client::class && $userEntity) {
+            if ($this->entity_type === 'client' && $userEntity) {
                 return \App\Models\Merchant::where('client_id', $userEntity->id)
                     ->where('id', $entityId)
                     ->exists();
             }
-            if ($this->entity_type === HeadQuarter::class && $userEntity) {
+            if ($this->entity_type === 'head_quarter' && $userEntity) {
                 return \App\Models\Merchant::where('head_quarter_id', $userEntity->id)
                     ->where('id', $entityId)
                     ->exists();
             }
-            if ($this->entity_type === Merchant::class) {
+            if ($this->entity_type === 'merchant') {
                 return $this->entity_id === $entityId;
             }
         }
@@ -383,16 +383,16 @@ class User extends Authenticatable
 
     public function getEntityTypeLabel(): string
     {
-        if ($this->entity_type === SystemOwner::class) {
+        if ($this->entity_type === 'system_owner') {
             return 'System Owner';
         }
-        if ($this->entity_type === Client::class) {
+        if ($this->entity_type === 'client') {
             return 'Client';
         }
-        if ($this->entity_type === HeadQuarter::class) {
+        if ($this->entity_type === 'head_quarter') {
             return 'Head Quarter';
         }
-        if ($this->entity_type === Merchant::class) {
+        if ($this->entity_type === 'merchant') {
             return 'Merchant';
         }
 
@@ -459,7 +459,7 @@ class User extends Authenticatable
 
     public function getMerchantId(): ?int
     {
-        if ($this->entity_type === Merchant::class) {
+        if ($this->entity_type === 'merchant') {
             return $this->entity_id;
         }
 

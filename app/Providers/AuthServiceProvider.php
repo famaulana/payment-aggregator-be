@@ -18,14 +18,14 @@ class AuthServiceProvider extends ServiceProvider
 
     protected function configurePassport(): void
     {
-        // Default TTL for all clients
-        $accessTokenTTL = config('passport.access_token_ttl', 60);
-        $refreshTokenTTL = config('passport.refresh_token_ttl', 30);
-        $patTokenTTL = config('passport.pat_token_ttl', 90);
+        // Semua TTL dalam satuan menit
+        $dashboardAccessTTL  = (int) config('passport.dashboard_access_token_ttl', 60);   // menit
+        $dashboardRefreshTTL = (int) config('passport.dashboard_refresh_token_ttl', 4320); // menit
+        $apiAccessTTL        = (int) config('passport.api_access_token_ttl', 60);          // menit
 
-        Passport::tokensExpireIn(new \DateInterval('PT' . $accessTokenTTL . 'M'));
-        Passport::refreshTokensExpireIn(new \DateInterval('P' . $refreshTokenTTL . 'D'));
-        Passport::personalAccessTokensExpireIn(new \DateInterval('P' . $patTokenTTL . 'D'));
+        Passport::tokensExpireIn(new \DateInterval('PT' . $apiAccessTTL . 'M'));
+        Passport::refreshTokensExpireIn(new \DateInterval('PT' . $dashboardRefreshTTL . 'M'));
+        Passport::personalAccessTokensExpireIn(new \DateInterval('PT' . $dashboardAccessTTL . 'M'));
 
         // Enable password grant
         Passport::enablePasswordGrant();

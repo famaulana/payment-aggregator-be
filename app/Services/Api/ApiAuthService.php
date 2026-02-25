@@ -9,7 +9,6 @@ use App\Services\Shared\AuditTrailService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Passport\Token;
 
 class ApiAuthService
 {
@@ -38,6 +37,8 @@ class ApiAuthService
 
         // Get the first user associated with the client
         $user = $keyRecord->client->users->first();
+
+        // dd($keyRecord);
 
         if (!$user) {
             throw new AuthenticationException(__('auth.no_user_associated_with_client'));
@@ -87,7 +88,7 @@ class ApiAuthService
         $user = auth()->user();
 
         // Check if the authenticated user is associated with a client
-        if ($user->entity_type !== \App\Models\Client::class) {
+        if ($user->entity_type !== 'client') {
             throw new AuthenticationException(__('auth.client_not_found'));
         }
 
@@ -204,7 +205,7 @@ class ApiAuthService
             'id' => $refreshToken,
             'access_token_id' => $accessTokenId,
             'revoked' => false,
-            'expires_at' => now()->addDays((int) config('passport.refresh_token_ttl', 30)),
+            'expires_at' => now()->addMinute((int) config('passport.refresh_token_ttl', 90)),
         ]);
 
         return $refreshToken;
