@@ -27,12 +27,19 @@ class SimulatorController extends Controller
     public function transactions(Request $request): JsonResponse
     {
         $user  = auth()->user();
+
+        // Simulator only accessible by System Owner and Client
+        if (!$user->isSystemOwner() && !$user->isClientUser()) {
+            return $this->forbidden('Simulator is only accessible by System Owner and Client users');
+        }
+
         $query = Transaction::with(['paymentMethod', 'paymentGateway', 'merchant', 'client']);
 
-        // Client scoping
+        // Client scoping - Client users can only see their own transactions
         if ($user->isClientUser()) {
             $query->where('client_id', $user->getClientId());
         } elseif ($request->filled('client_id')) {
+            // System Owner can filter by client_id
             $query->where('client_id', $request->client_id);
         }
 
@@ -43,7 +50,7 @@ class SimulatorController extends Controller
         if ($request->filled('payment_method')) {
             $query->whereHas('paymentMethod', function ($q) use ($request) {
                 $q->where('method_type', $request->payment_method)
-                  ->orWhere('method_code', $request->payment_method);
+                    ->orWhere('method_code', $request->payment_method);
             });
         }
 
@@ -51,8 +58,8 @@ class SimulatorController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('transaction_id', 'like', "%{$search}%")
-                  ->orWhere('merchant_ref', 'like', "%{$search}%")
-                  ->orWhere('customer_name', 'like', "%{$search}%");
+                    ->orWhere('merchant_ref', 'like', "%{$search}%")
+                    ->orWhere('customer_name', 'like', "%{$search}%");
             });
         }
 
@@ -289,6 +296,11 @@ class SimulatorController extends Controller
     private function canAccess(Transaction $transaction): bool
     {
         $user = auth()->user();
+
+        // Simulator is only accessible by System Owner and Client
+        if (!$user->isSystemOwner() && !$user->isClientUser()) {
+            return false;
+        }
 
         if ($user->isSystemOwner()) {
             return true;
