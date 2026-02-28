@@ -8,10 +8,10 @@ use App\Models\HeadQuarter;
 use App\Models\Merchant;
 use App\Models\SystemOwner;
 use App\Services\Shared\AuditTrailService;
+use App\Exceptions\AppException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
 class UserManagementService
 {
@@ -63,16 +63,16 @@ class UserManagementService
                     $subQuery->where('entity_type', 'client')
                         ->where('entity_id', $clientId);
                 })
-                // Users under head quarters owned by this client
-                ->orWhere(function ($subQuery) use ($headQuarterIds) {
-                    $subQuery->where('entity_type', 'head_quarter')
-                        ->whereIn('entity_id', $headQuarterIds);
-                })
-                // Users under merchants owned by this client
-                ->orWhere(function ($subQuery) use ($merchantIds) {
-                    $subQuery->where('entity_type', 'merchant')
-                        ->whereIn('entity_id', $merchantIds);
-                });
+                    // Users under head quarters owned by this client
+                    ->orWhere(function ($subQuery) use ($headQuarterIds) {
+                        $subQuery->where('entity_type', 'head_quarter')
+                            ->whereIn('entity_id', $headQuarterIds);
+                    })
+                    // Users under merchants owned by this client
+                    ->orWhere(function ($subQuery) use ($merchantIds) {
+                        $subQuery->where('entity_type', 'merchant')
+                            ->whereIn('entity_id', $merchantIds);
+                    });
             });
         } elseif ($currentUser->isHeadQuarterUser()) {
             $headQuarterId = $currentUser->getHeadQuarterId();
@@ -86,11 +86,11 @@ class UserManagementService
                     $subQuery->where('entity_type', 'head_quarter')
                         ->where('entity_id', $headQuarterId);
                 })
-                // Users under merchants owned by this head quarter
-                ->orWhere(function ($subQuery) use ($merchantIds) {
-                    $subQuery->where('entity_type', 'merchant')
-                        ->whereIn('entity_id', $merchantIds);
-                });
+                    // Users under merchants owned by this head quarter
+                    ->orWhere(function ($subQuery) use ($merchantIds) {
+                        $subQuery->where('entity_type', 'merchant')
+                            ->whereIn('entity_id', $merchantIds);
+                    });
             });
         } else {
             // Merchant or other roles cannot access user management
@@ -204,15 +204,25 @@ class UserManagementService
                 ]));
             } elseif ($entityType === 'merchant') {
                 $clientId = $currentUser->getClientId();
-                $entity = Merchant::create(array_merge($entityData, [
+                $merchantData = array_merge($entityData, [
                     'client_id' => $clientId,
                     'created_by' => $currentUser->id,
                     'status' => 'active',
-                ]));
+                ]);
+
+                // Auto-detect and set head_quarter_id if creator is a headquarter user
+                if ($currentUser->isHeadQuarterUser()) {
+                    $headQuarterId = $currentUser->getHeadQuarterId();
+                    if ($headQuarterId) {
+                        $merchantData['head_quarter_id'] = $headQuarterId;
+                    }
+                }
+
+                $entity = Merchant::create($merchantData);
             }
 
             if (!$entity) {
-                throw new \Exception(__('messages.failed_to_create_entity'));
+                throw AppException::serverError(__('messages.failed_to_create_entity'));
             }
 
             $user = User::create([
@@ -253,7 +263,7 @@ class UserManagementService
         $user = User::with(['entity', 'creator', 'roles'])->findOrFail($id);
 
         if (!$this->canAccessUser($currentUser, $user)) {
-            throw new \Exception(__('messages.forbidden'));
+            throw AppException::forbidden();
         }
 
         return $user;
@@ -272,11 +282,11 @@ class UserManagementService
         $user = User::with(['entity', 'creator', 'roles'])->findOrFail($id);
 
         if (!$this->canAccessUser($currentUser, $user)) {
-            throw new \Exception(__('messages.forbidden'));
+            throw AppException::forbidden();
         }
 
         if ($role && in_array($role, self::SYSTEM_OWNER_ROLES)) {
-            throw new \Exception(__('messages.cannot_assign_system_owner_role'));
+            throw AppException::forbidden(__('messages.cannot_assign_system_owner_role'));
         }
 
         $oldValues = [
@@ -292,7 +302,8 @@ class UserManagementService
         if ($fullName) $user->full_name = $fullName;
         if ($status) $user->status = $status;
 
-        $entityData = $this->buildEntityData($user, $rawEntityData);
+        // Build entity data based on current user's role (not target user's role)
+        $entityData = $this->buildEntityDataForUpdate($currentUser, $user, $rawEntityData);
 
         DB::beginTransaction();
         try {
@@ -329,7 +340,7 @@ class UserManagementService
         $user = User::with(['entity', 'creator', 'roles'])->findOrFail($id);
 
         if (!$this->canAccessUser($currentUser, $user)) {
-            throw new \Exception(__('messages.forbidden'));
+            throw AppException::forbidden();
         }
 
         $user->status = $user->status === 'active' ? 'inactive' : 'active';
@@ -346,7 +357,31 @@ class UserManagementService
         $user = User::with(['entity', 'creator', 'roles'])->findOrFail($id);
 
         if (!$this->canAccessUser($currentUser, $user)) {
-            throw new \Exception(__('messages.forbidden'));
+            throw AppException::forbidden();
+        }
+
+        $user->password = Hash::make($newPassword);
+        $user->save();
+
+        $this->auditService->logUserPasswordReset($user->id);
+
+        return $user->fresh(['entity', 'creator', 'roles']);
+    }
+
+    public function changeUserPassword(int $userId, string $oldPassword, string $newPassword): User
+    {
+        $currentUser = auth()->user();
+
+        // Ensure user can only change their own password
+        if ($currentUser->id !== $userId) {
+            throw AppException::forbidden(__('messages.cannot_change_other_user_password'));
+        }
+
+        $user = User::with(['entity', 'creator', 'roles'])->findOrFail($userId);
+
+        // Verify old password matches current password
+        if (!Hash::check($oldPassword, $user->password)) {
+            throw AppException::forbidden(__('messages.old_password_incorrect'));
         }
 
         $user->password = Hash::make($newPassword);
@@ -363,28 +398,28 @@ class UserManagementService
         // system_owner_admin and below cannot create system_owner users.
         if (in_array($role, self::SYSTEM_OWNER_ROLES)) {
             if (!$currentUser->hasRole('system_owner')) {
-                throw new \Exception(__('messages.cannot_create_system_owner'));
+                throw AppException::forbidden(__('messages.cannot_create_system_owner'));
             }
             // system_owner can create sub-roles but not another system_owner
             if ($role === 'system_owner') {
-                throw new \Exception(__('messages.cannot_create_system_owner'));
+                throw AppException::forbidden(__('messages.cannot_create_system_owner'));
             }
             if ($entityType !== 'system_owner') {
-                throw new \Exception(__('messages.entity_type_must_be_system_owner'));
+                throw AppException::invalidInput(__('messages.entity_type_must_be_system_owner'));
             }
             return;
         }
 
         if ($currentUser->isSystemOwner()) {
             if (!in_array($role, self::CLIENT_ROLES)) {
-                throw new \Exception(__('messages.system_owner_can_only_create_client_users'));
+                throw AppException::invalidInput(__('messages.system_owner_can_only_create_client_users'));
             }
             if ($entityType !== 'client') {
-                throw new \Exception(__('messages.entity_type_must_be_client'));
+                throw AppException::invalidInput(__('messages.entity_type_must_be_client'));
             }
         } elseif ($currentUser->isClientUser()) {
             if (!in_array($role, array_merge(self::HEAD_QUARTER_ROLES, self::MERCHANT_ROLES))) {
-                throw new \Exception(__('messages.client_can_only_create_head_quarter_or_merchant_users'));
+                throw AppException::invalidInput(__('messages.client_can_only_create_head_quarter_or_merchant_users'));
             }
 
             $clientId = $currentUser->getClientId();
@@ -392,26 +427,26 @@ class UserManagementService
             $entity = $this->getEntity($entityClass, $entityId);
 
             if ($entityType === 'head_quarter' && $entity->client_id !== $clientId) {
-                throw new \Exception(__('messages.head_quarter_must_belong_to_your_client'));
+                throw AppException::forbidden(__('messages.head_quarter_must_belong_to_your_client'));
             }
 
             if ($entityType === 'merchant' && $entity->client_id !== $clientId) {
-                throw new \Exception(__('messages.merchant_must_belong_to_your_client'));
+                throw AppException::forbidden(__('messages.merchant_must_belong_to_your_client'));
             }
         } elseif ($currentUser->isHeadQuarterUser()) {
             if (!in_array($role, self::MERCHANT_ROLES)) {
-                throw new \Exception(__('messages.head_quarter_can_only_create_merchant_users'));
+                throw AppException::invalidInput(__('messages.head_quarter_can_only_create_merchant_users'));
             }
 
             if ($entityType !== 'merchant') {
-                throw new \Exception(__('messages.entity_type_must_be_merchant'));
+                throw AppException::invalidInput(__('messages.entity_type_must_be_merchant'));
             }
 
             $headQuarterId = $currentUser->getHeadQuarterId();
             $entity = Merchant::findOrFail($entityId);
 
             if ($entity->head_quarter_id !== $headQuarterId) {
-                throw new \Exception(__('messages.merchant_must_belong_to_your_head_quarter'));
+                throw AppException::forbidden(__('messages.merchant_must_belong_to_your_head_quarter'));
             }
         }
     }
@@ -422,6 +457,23 @@ class UserManagementService
         if ($currentUser->id === $targetUser->id) {
             return true;
         }
+
+        \Log::info('canAccessUser check', [
+            'current_user_id' => $currentUser->id,
+            'current_user_entity_type' => $currentUser->entity_type,
+            'current_user_role' => $currentUser->role_name,
+            'current_user_is_system_owner' => $currentUser->isSystemOwner(),
+            'current_user_is_client' => $currentUser->isClientUser(),
+            'current_user_is_head_quarter' => $currentUser->isHeadQuarterUser(),
+            'current_user_client_id' => $currentUser->getClientId(),
+            'current_user_head_quarter_id' => $currentUser->getHeadQuarterId(),
+            'target_user_id' => $targetUser->id,
+            'target_user_entity_type' => $targetUser->entity_type,
+            'target_user_role' => $targetUser->role_name,
+            'target_user_is_system_owner' => $targetUser->isSystemOwner(),
+            'target_user_client_id' => $targetUser->getClientId(),
+            'target_user_head_quarter_id' => $targetUser->getHeadQuarterId(),
+        ]);
 
         if ($currentUser->isSystemOwner()) {
             return !$targetUser->isSystemOwner();
@@ -441,63 +493,34 @@ class UserManagementService
     }
 
     /**
-     * Map raw request input to the correct entity model columns.
-     * Handles field aliases (e.g. ho_email → email, merchant_email → email).
+     * Build entity data for update based on target user's entity type.
+     * This method handles field aliases (e.g. ho_email → email, merchant_email → email).
+     * Note: Input should already be filtered to contain only entity fields by the request layer.
      */
-    private function buildEntityData(User $user, array $input): array
+    private function buildEntityDataForUpdate(User $currentUser, User $targetUser, array $input): array
     {
         if (empty($input)) {
             return [];
         }
 
-        if ($user->isSystemOwner()) {
-            $fields = [
-                'name', 'business_type',
-                'pic_name', 'pic_position', 'pic_phone', 'pic_email',
-                'company_phone', 'company_email',
-                'province_id', 'city_id', 'address', 'postal_code',
-            ];
-            return $this->pickFields($input, $fields);
-        }
-
-        if ($user->isClientUser()) {
-            $fields = [
-                'client_name', 'business_type',
-                'bank_name', 'bank_account_number', 'bank_account_holder_name', 'bank_branch',
-                'pic_name', 'pic_position', 'pic_phone', 'pic_email',
-                'company_phone', 'company_email',
-                'province_id', 'city_id', 'address', 'postal_code',
-            ];
-            return $this->pickFields($input, $fields);
-        }
-
-        if ($user->isHeadQuarterUser()) {
-            $fields = [
-                'name', 'province_id', 'city_id', 'district_id',
-                'sub_district_id', 'address', 'postal_code', 'phone',
-            ];
-            $data = $this->pickFields($input, $fields);
+        // Handle field aliases based on target user's entity type
+        if ($targetUser->entity_type === HeadQuarter::class || $targetUser->entity_type === 'head_quarter') {
             // ho_email → entity email column
             if (array_key_exists('ho_email', $input)) {
-                $data['email'] = $input['ho_email'];
+                $input['email'] = $input['ho_email'];
+                unset($input['ho_email']);
             }
-            return $data;
         }
 
-        if ($user->isMerchantUser()) {
-            $fields = [
-                'merchant_name', 'province_id', 'city_id', 'district_id',
-                'sub_district_id', 'address', 'postal_code', 'phone', 'pos_merchant_id',
-            ];
-            $data = $this->pickFields($input, $fields);
+        if ($targetUser->entity_type === Merchant::class || $targetUser->entity_type === 'merchant') {
             // merchant_email → entity email column
             if (array_key_exists('merchant_email', $input)) {
-                $data['email'] = $input['merchant_email'];
+                $input['email'] = $input['merchant_email'];
+                unset($input['merchant_email']);
             }
-            return $data;
         }
 
-        return [];
+        return $input;
     }
 
     /**
@@ -516,12 +539,12 @@ class UserManagementService
 
     private function resolveEntityClass(string $entityType): string
     {
-        return match($entityType) {
+        return match ($entityType) {
             'system_owner' => SystemOwner::class,
             'client'       => Client::class,
             'head_quarter' => HeadQuarter::class,
             'merchant'     => Merchant::class,
-            default => throw new \Exception(__('messages.invalid_entity_type')),
+            default => throw AppException::invalidInput(__('messages.invalid_entity_type')),
         };
     }
 

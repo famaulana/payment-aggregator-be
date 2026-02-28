@@ -170,6 +170,9 @@ return [
     'user_updated' => 'Pengguna berhasil diperbarui',
     'user_status_updated' => 'Status pengguna berhasil diperbarui',
     'user_password_reset' => 'Password pengguna berhasil direset',
+    'password_changed_successfully' => 'Password berhasil diubah',
+    'cannot_change_other_user_password' => 'Tidak dapat mengubah password pengguna lain',
+    'old_password_incorrect' => 'Password lama salah',
 
     'cannot_create_system_owner' => 'Tidak dapat membuat pengguna system owner',
     'cannot_assign_system_owner_role' => 'Tidak dapat memberikan role system owner',

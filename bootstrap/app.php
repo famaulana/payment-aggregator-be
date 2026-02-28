@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -10,6 +11,25 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
+        then: function () {
+            Route::middleware('api')
+                ->prefix('api/v1')
+                ->group(function () {
+                    require base_path('routes/v1/dashboard.php');
+                });
+
+            Route::middleware('api')
+                ->prefix('api/v1')
+                ->group(function () {
+                    require base_path('routes/v1/webhook.php');
+                });
+
+            Route::middleware('api')
+                ->prefix('api/v1')
+                ->group(function () {
+                    require base_path('routes/v1/public.php');
+                });
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(\App\Http\Middleware\SetLocaleFromRequest::class);
@@ -25,6 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'rate.limit.by.api.key' => \App\Http\Middleware\RateLimitByApiKey::class,
             'security.validation' => \App\Http\Middleware\SecurityValidationMiddleware::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'role.group' => \App\Http\Middleware\RoleGroupMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);

@@ -12,7 +12,13 @@ class UpdateUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check();
+        $user = auth()->user();
+
+        return auth()->check() && (
+            $user->isSystemOwner() ||
+            $user->isClientUser() ||
+            $user->isHeadQuarterUser()
+        );
     }
 
     public function rules(): array
@@ -22,10 +28,16 @@ class UpdateUserRequest extends FormRequest
         $isSelf     = $this->route('id') === null;
 
         $rules = [
-            'username'  => ['sometimes', 'string', 'max:255',
+            'username'  => [
+                'sometimes',
+                'string',
+                'max:255',
                 Rule::unique('users', 'username')->ignore($userId),
             ],
-            'email'     => ['sometimes', 'email', 'max:255',
+            'email'     => [
+                'sometimes',
+                'email',
+                'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
             'full_name' => ['sometimes', 'string', 'max:255'],
@@ -151,5 +163,87 @@ class UpdateUserRequest extends FormRequest
                 'errors'           => $validator->errors(),
             ], 422)
         );
+    }
+
+    /**
+     * Extract only entity-related data from the validated request.
+     * This filters out user fields (username, email, full_name, role, status)
+     * and returns only the entity-specific fields.
+     */
+    public function getEntityData(): array
+    {
+        $targetUser = $this->resolveTargetUser();
+
+        if (!$targetUser) {
+            return [];
+        }
+
+        $validated = $this->validated();
+        $entityFields = [];
+
+        // Get entity field names based on target user's entity type
+        if ($targetUser->isSystemOwner()) {
+            $entityFields = [
+                'name',
+                'business_type',
+                'pic_name',
+                'pic_position',
+                'pic_phone',
+                'pic_email',
+                'company_phone',
+                'company_email',
+                'province_id',
+                'city_id',
+                'address',
+                'postal_code',
+            ];
+        } elseif ($targetUser->isClientUser()) {
+            $entityFields = [
+                'client_name',
+                'business_type',
+                'bank_name',
+                'bank_account_number',
+                'bank_account_holder_name',
+                'bank_branch',
+                'pic_name',
+                'pic_position',
+                'pic_phone',
+                'pic_email',
+                'company_phone',
+                'company_email',
+                'province_id',
+                'city_id',
+                'address',
+                'postal_code',
+            ];
+        } elseif ($targetUser->isHeadQuarterUser()) {
+            $entityFields = [
+                'name',
+                'province_id',
+                'city_id',
+                'district_id',
+                'sub_district_id',
+                'address',
+                'postal_code',
+                'phone',
+                'ho_email',
+            ];
+        } elseif ($targetUser->isMerchantUser()) {
+            $entityFields = [
+                'merchant_name',
+                'province_id',
+                'city_id',
+                'district_id',
+                'sub_district_id',
+                'address',
+                'postal_code',
+                'phone',
+                'merchant_email',
+                'pos_merchant_id',
+            ];
+        }
+
+        // Filter validated data to only include entity fields
+        return array_intersect_key($validated, array_flip($entityFields));
     }
 }

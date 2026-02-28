@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\CreateUserWithEntityRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\ChangePasswordRequest;
 use App\Services\Dashboard\UserManagementService;
 use App\Enums\ResponseCode;
 use App\Http\Resources\UserResource;
+use App\Exceptions\AppException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -61,6 +63,9 @@ class UserController extends Controller
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFound(__('messages.resource_not_found'));
+        } catch (AppException $e) {
+            // Let AppException propagate to global handler for proper HTTP status code
+            throw $e;
         } catch (\Exception $e) {
             Log::error('User creation failed', [
                 'error' => $e->getMessage(),
@@ -96,6 +101,9 @@ class UserController extends Controller
                 data: new UserResource($user),
                 message: __('messages.user_and_entity_created')
             );
+        } catch (AppException $e) {
+            // Let AppException propagate to global handler for proper HTTP status code
+            throw $e;
         } catch (\Exception $e) {
             Log::error('User with entity creation failed', [
                 'error' => $e->getMessage(),
@@ -191,6 +199,9 @@ class UserController extends Controller
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFound(__('messages.user_not_found'));
+        } catch (AppException $e) {
+            // Let AppException propagate to global handler for proper HTTP status code
+            throw $e;
         } catch (\Exception $e) {
             return $this->forbidden($e->getMessage());
         }
@@ -211,7 +222,7 @@ class UserController extends Controller
                 // Self-update: cannot change own role or status
                 role: $isSelf ? null : $request->role,
                 status: $isSelf ? null : $request->status,
-                rawEntityData: $request->validated(),
+                rawEntityData: $request->getEntityData(),
             );
 
             return $this->updated(
@@ -220,6 +231,9 @@ class UserController extends Controller
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFound(__('messages.user_not_found'));
+        } catch (AppException $e) {
+            // Let AppException propagate to global handler for proper HTTP status code
+            throw $e;
         } catch (\Exception $e) {
             Log::error('User update failed', [
                 'error' => $e->getMessage(),
@@ -244,6 +258,9 @@ class UserController extends Controller
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFound(__('messages.user_not_found'));
+        } catch (AppException $e) {
+            // Let AppException propagate to global handler for proper HTTP status code
+            throw $e;
         } catch (\Exception $e) {
             return $this->forbidden($e->getMessage());
         }
@@ -264,6 +281,33 @@ class UserController extends Controller
             );
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return $this->notFound(__('messages.user_not_found'));
+        } catch (AppException $e) {
+            // Let AppException propagate to global handler for proper HTTP status code
+            throw $e;
+        } catch (\Exception $e) {
+            return $this->forbidden($e->getMessage());
+        }
+    }
+
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        try {
+            $currentUser = auth()->user();
+            $user = $this->userService->changeUserPassword(
+                userId: $currentUser->id,
+                oldPassword: $request->old_password,
+                newPassword: $request->password
+            );
+
+            return $this->success(
+                data: new UserResource($user),
+                message: __('messages.password_changed_successfully')
+            );
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return $this->notFound(__('messages.user_not_found'));
+        } catch (AppException $e) {
+            // Let AppException propagate to global handler for proper HTTP status code
+            throw $e;
         } catch (\Exception $e) {
             return $this->forbidden($e->getMessage());
         }

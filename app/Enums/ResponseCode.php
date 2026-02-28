@@ -12,14 +12,14 @@ enum ResponseCode: string
     case UPDATED = '0004';
     case DELETED = '0005';
 
-    // Validation Error Codes - 1000-1999
+        // Validation Error Codes - 1000-1999
     case VALIDATION_ERROR = '1000';
     case INVALID_INPUT = '1001';
     case MISSING_REQUIRED_FIELD = '1002';
     case INVALID_FORMAT = '1003';
     case DUPLICATE_ENTRY = '1004';
 
-    // Authentication & Authorization Error Codes - 2000-2999
+        // Authentication & Authorization Error Codes - 2000-2999
     case UNAUTHORIZED = '2000';
     case AUTHENTICATION_FAILED = '2001';
     case TOKEN_EXPIRED = '2002';
@@ -36,7 +36,7 @@ enum ResponseCode: string
     case INVALID_TIMESTAMP = '2013';
     case API_KEY_REQUIRED = '2014';
 
-    // Business Logic Error Codes - 3000-3999
+        // Business Logic Error Codes - 3000-3999
     case USER_NOT_FOUND = '3000';
     case CLIENT_NOT_FOUND = '3001';
     case TRANSACTION_NOT_FOUND = '3002';
@@ -60,7 +60,7 @@ enum ResponseCode: string
     case REFUND_NOT_AVAILABLE = '3020';
     case REFUND_ALREADY_REFUNDED = '3021';
 
-    // Server Error Codes - 5000-5999
+        // Server Error Codes - 5000-5999
     case INTERNAL_SERVER_ERROR = '5000';
     case DATABASE_ERROR = '5001';
     case EXTERNAL_SERVICE_ERROR = '5002';
@@ -69,14 +69,14 @@ enum ResponseCode: string
     case TOO_MANY_REQUESTS = '5005';
     case SERVICE_UNAVAILABLE = '5006';
 
-    // Resource Not Found - 4000-4999
+        // Resource Not Found - 4000-4999
     case NOT_FOUND = '4000';
     case RESOURCE_NOT_FOUND = '4001';
     case ENDPOINT_NOT_FOUND = '4002';
 
     public function getMessage(): string
     {
-        return match($this) {
+        return match ($this) {
             self::SUCCESS => 'messages.success',
             self::CREATED => 'messages.resource_created',
             self::ACCEPTED => 'messages.request_accepted',
@@ -145,7 +145,7 @@ enum ResponseCode: string
 
     public function getHttpStatusCode(): int
     {
-        return match($this) {
+        return match ($this) {
             // Success - 2xx
             self::SUCCESS => 200,
             self::CREATED => 201,
@@ -160,7 +160,7 @@ enum ResponseCode: string
             self::DUPLICATE_ENTRY => 422,
 
             // Auth Error - 4xx
-            self::UNAUTHORIZED, self::AUTHENTICATION_FAILED,
+            self::UNAUTHORIZED,
             self::TOKEN_EXPIRED, self::TOKEN_INVALID,
             self::SESSION_EXPIRED, self::INVALID_API_KEY, self::INVALID_API_SECRET,
             self::API_KEY_REVOKED, self::API_KEY_EXPIRED, self::IP_NOT_ALLOWED,
@@ -169,6 +169,7 @@ enum ResponseCode: string
             self::FORBIDDEN => 403,
 
             // Business Logic Error - 4xx
+            self::AUTHENTICATION_FAILED,
             self::USER_NOT_FOUND, self::CLIENT_NOT_FOUND,
             self::TRANSACTION_NOT_FOUND, self::MERCHANT_NOT_FOUND,
             self::INSUFFICIENT_BALANCE, self::INVALID_PAYMENT_METHOD,
