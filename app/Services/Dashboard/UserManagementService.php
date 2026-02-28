@@ -63,16 +63,16 @@ class UserManagementService
                     $subQuery->where('entity_type', 'client')
                         ->where('entity_id', $clientId);
                 })
-                // Users under head quarters owned by this client
-                ->orWhere(function ($subQuery) use ($headQuarterIds) {
-                    $subQuery->where('entity_type', 'head_quarter')
-                        ->whereIn('entity_id', $headQuarterIds);
-                })
-                // Users under merchants owned by this client
-                ->orWhere(function ($subQuery) use ($merchantIds) {
-                    $subQuery->where('entity_type', 'merchant')
-                        ->whereIn('entity_id', $merchantIds);
-                });
+                    // Users under head quarters owned by this client
+                    ->orWhere(function ($subQuery) use ($headQuarterIds) {
+                        $subQuery->where('entity_type', 'head_quarter')
+                            ->whereIn('entity_id', $headQuarterIds);
+                    })
+                    // Users under merchants owned by this client
+                    ->orWhere(function ($subQuery) use ($merchantIds) {
+                        $subQuery->where('entity_type', 'merchant')
+                            ->whereIn('entity_id', $merchantIds);
+                    });
             });
         } elseif ($currentUser->isHeadQuarterUser()) {
             $headQuarterId = $currentUser->getHeadQuarterId();
@@ -86,11 +86,11 @@ class UserManagementService
                     $subQuery->where('entity_type', 'head_quarter')
                         ->where('entity_id', $headQuarterId);
                 })
-                // Users under merchants owned by this head quarter
-                ->orWhere(function ($subQuery) use ($merchantIds) {
-                    $subQuery->where('entity_type', 'merchant')
-                        ->whereIn('entity_id', $merchantIds);
-                });
+                    // Users under merchants owned by this head quarter
+                    ->orWhere(function ($subQuery) use ($merchantIds) {
+                        $subQuery->where('entity_type', 'merchant')
+                            ->whereIn('entity_id', $merchantIds);
+                    });
             });
         } else {
             // Merchant or other roles cannot access user management
@@ -204,11 +204,21 @@ class UserManagementService
                 ]));
             } elseif ($entityType === 'merchant') {
                 $clientId = $currentUser->getClientId();
-                $entity = Merchant::create(array_merge($entityData, [
+                $merchantData = array_merge($entityData, [
                     'client_id' => $clientId,
                     'created_by' => $currentUser->id,
                     'status' => 'active',
-                ]));
+                ]);
+
+                // Auto-detect and set head_quarter_id if creator is a headquarter user
+                if ($currentUser->isHeadQuarterUser()) {
+                    $headQuarterId = $currentUser->getHeadQuarterId();
+                    if ($headQuarterId) {
+                        $merchantData['head_quarter_id'] = $headQuarterId;
+                    }
+                }
+
+                $entity = Merchant::create($merchantData);
             }
 
             if (!$entity) {
@@ -452,29 +462,54 @@ class UserManagementService
 
         if ($user->isSystemOwner()) {
             $fields = [
-                'name', 'business_type',
-                'pic_name', 'pic_position', 'pic_phone', 'pic_email',
-                'company_phone', 'company_email',
-                'province_id', 'city_id', 'address', 'postal_code',
+                'name',
+                'business_type',
+                'pic_name',
+                'pic_position',
+                'pic_phone',
+                'pic_email',
+                'company_phone',
+                'company_email',
+                'province_id',
+                'city_id',
+                'address',
+                'postal_code',
             ];
             return $this->pickFields($input, $fields);
         }
 
         if ($user->isClientUser()) {
             $fields = [
-                'client_name', 'business_type',
-                'bank_name', 'bank_account_number', 'bank_account_holder_name', 'bank_branch',
-                'pic_name', 'pic_position', 'pic_phone', 'pic_email',
-                'company_phone', 'company_email',
-                'province_id', 'city_id', 'address', 'postal_code',
+                'client_name',
+                'business_type',
+                'bank_name',
+                'bank_account_number',
+                'bank_account_holder_name',
+                'bank_branch',
+                'pic_name',
+                'pic_position',
+                'pic_phone',
+                'pic_email',
+                'company_phone',
+                'company_email',
+                'province_id',
+                'city_id',
+                'address',
+                'postal_code',
             ];
             return $this->pickFields($input, $fields);
         }
 
         if ($user->isHeadQuarterUser()) {
             $fields = [
-                'name', 'province_id', 'city_id', 'district_id',
-                'sub_district_id', 'address', 'postal_code', 'phone',
+                'name',
+                'province_id',
+                'city_id',
+                'district_id',
+                'sub_district_id',
+                'address',
+                'postal_code',
+                'phone',
             ];
             $data = $this->pickFields($input, $fields);
             // ho_email → entity email column
@@ -486,8 +521,15 @@ class UserManagementService
 
         if ($user->isMerchantUser()) {
             $fields = [
-                'merchant_name', 'province_id', 'city_id', 'district_id',
-                'sub_district_id', 'address', 'postal_code', 'phone', 'pos_merchant_id',
+                'merchant_name',
+                'province_id',
+                'city_id',
+                'district_id',
+                'sub_district_id',
+                'address',
+                'postal_code',
+                'phone',
+                'pos_merchant_id',
             ];
             $data = $this->pickFields($input, $fields);
             // merchant_email → entity email column
@@ -516,7 +558,7 @@ class UserManagementService
 
     private function resolveEntityClass(string $entityType): string
     {
-        return match($entityType) {
+        return match ($entityType) {
             'system_owner' => SystemOwner::class,
             'client'       => Client::class,
             'head_quarter' => HeadQuarter::class,
