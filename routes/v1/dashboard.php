@@ -52,8 +52,9 @@ Route::prefix('dashboard')->group(function () {
             Route::post('/with-entity', [UserController::class, 'storeWithEntity']);
             Route::get('/{id}', [UserController::class, 'show']);
             Route::put('/{id}', [UserController::class, 'update']);
-            Route::post('/{id}/toggle-status', [UserController::class, 'toggleStatus']);
-            Route::post('/{id}/reset-password', [UserController::class, 'resetPassword']);
+            Route::post('/change-password', [UserController::class, 'changePassword']);
+            // Route::post('/{id}/toggle-status', [UserController::class, 'toggleStatus']); // Disable for now
+            // Route::post('/{id}/reset-password', [UserController::class, 'resetPassword']); // Disable for now
             // Route::post('/', [UserController::class, 'store']); // Disable for now
         });
 

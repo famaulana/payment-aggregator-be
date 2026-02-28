@@ -170,6 +170,9 @@ return [
     'user_updated' => 'User updated successfully',
     'user_status_updated' => 'User status updated successfully',
     'user_password_reset' => 'User password reset successfully',
+    'password_changed_successfully' => 'Password changed successfully',
+    'cannot_change_other_user_password' => 'Cannot change other user password',
+    'old_password_incorrect' => 'Old password is incorrect',
 
     'cannot_create_system_owner' => 'Cannot create system owner users',
     'cannot_assign_system_owner_role' => 'Cannot assign system owner role',
