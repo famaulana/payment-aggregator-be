@@ -383,16 +383,16 @@ class User extends Authenticatable
 
     public function getEntityTypeLabel(): string
     {
-        if ($this->entity_type === 'system_owner') {
+        if ($this->entity_type === 'system_owner' || $this->entity_type === SystemOwner::class) {
             return 'System Owner';
         }
-        if ($this->entity_type === 'client') {
+        if ($this->entity_type === 'client' || $this->entity_type === Client::class) {
             return 'Client';
         }
-        if ($this->entity_type === 'head_quarter') {
+        if ($this->entity_type === 'head_quarter' || $this->entity_type === HeadQuarter::class) {
             return 'Head Quarter';
         }
-        if ($this->entity_type === 'merchant') {
+        if ($this->entity_type === 'merchant' || $this->entity_type === Merchant::class) {
             return 'Merchant';
         }
 
